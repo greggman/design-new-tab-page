@@ -2,19 +2,10 @@
   "manifest_version": 3,
   "name": "Design New Tab Page",
   "description": "Design new tab page  ",
-  "version": "0.0.0.7",
+  "version": "0.0.0.1",
   "chrome_url_overrides" : {
     "newtab": "newpage.html"
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["js/*", "js/renderers/*", "images/*"],
-      "matches": ["<all_urls>"]
-    }
-  ],
   "icons": {
     "16":  "/images/icon-16.png",
     "32":  "/images/icon-32.png",

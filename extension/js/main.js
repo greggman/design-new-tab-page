@@ -33,8 +33,6 @@ export function generate() {
 
 // wire UI
 document.getElementById('regen').addEventListener('click', e => { e.stopPropagation(); generate(); });
-addEventListener('keydown', e => { if (e.key.toLowerCase() === 'r') generate(); });
-setTimeout(() => { const h = document.getElementById('hint'); if (h) h.style.opacity = '0'; }, 4500);
 
 // initial generate
 generate();

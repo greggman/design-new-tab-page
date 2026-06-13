@@ -22,6 +22,31 @@ import waveGrid from './waveGrid.js';
 import cornerArcs from './cornerArcs.js';
 import brickWall from './brickWall.js';
 import crossHatch from './crossHatch.js';
+import truchet from './truchet.js';
+import halftone from './halftone.js';
+import albers from './albers.js';
+import bauhaus from './bauhaus.js';
+import eclipse from './eclipse.js';
+import sunrise from './sunrise.js';
+import chevronRows from './chevronRows.js';
+import plusField from './plusField.js';
+import bullseyeGrid from './bullseyeGrid.js';
+import staircase from './staircase.js';
+import radialBars from './radialBars.js';
+import moireRings from './moireRings.js';
+import columnStripes from './columnStripes.js';
+import rotatingSquares from './rotatingSquares.js';
+import confetti from './confetti.js';
+import tangram from './tangram.js';
+import barStack from './barStack.js';
+import nestedFrames from './nestedFrames.js';
+import quarterFan from './quarterFan.js';
+import constellation from './constellation.js';
+import windmillTiles from './windmillTiles.js';
+import ripple from './ripple.js';
+import aurora from './aurora.js';
+import seigaiha from './seigaiha.js';
+import colorField from './colorField.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -31,5 +56,11 @@ export const SYSTEMS = [
   ['Triangle rows', triangleRows, .4], ['Spiral', spiral, .35], ['Scallop grid', scallopGrid, .4], ['Orbit', orbit, .4],
   ['Phyllotaxis', phyllotaxis, .5], ['Isometric', isometric, .45], ['Mondrian', mondrian, .4], ['Pinwheel', pinwheel, .45],
   ['Wave grid', waveGrid, .45], ['Corner arcs', cornerArcs, .4], ['Brick wall', brickWall, .4], ['Cross-hatch', crossHatch, .2],
+  ['Truchet', truchet, .5], ['Halftone', halftone, .5], ['Homage', albers, .3], ['Bauhaus', bauhaus, .3],
+  ['Eclipse', eclipse, .25], ['Sunrise', sunrise, .4], ['Chevron rows', chevronRows, .45], ['Plus field', plusField, .5],
+  ['Bullseye grid', bullseyeGrid, .45], ['Staircase', staircase, .4], ['Radial bars', radialBars, .4], ['Moiré rings', moireRings, .3],
+  ['Column stripes', columnStripes, .45], ['Rotating squares', rotatingSquares, .5], ['Confetti', confetti, .3], ['Tangram', tangram, .45],
+  ['Bar stack', barStack, .4], ['Nested frames', nestedFrames, .3], ['Quarter fan', quarterFan, .4], ['Constellation', constellation, .25],
+  ['Windmill tiles', windmillTiles, .5], ['Ripple', ripple, .45], ['Aurora', aurora, .3], ['Seigaiha', seigaiha, .45], ['Color field', colorField, .3],
 ];
 export default SYSTEMS;

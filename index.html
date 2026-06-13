@@ -1,0 +1,26 @@
+<!-- Generative geometric poster art. New composition on load, on click, button, or press R. -->
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  #stage { position: fixed; inset: 0; overflow: hidden; user-select: none; }
+  #art { position: absolute; left: 0; top: 0; transform-origin: center center; will-change: transform; }
+  .piece { position: absolute; }
+
+  @keyframes fin { from { opacity: 0; transform: var(--t0); } to { opacity: var(--op,1); transform: var(--t1); } }
+
+  #ui { position: fixed; top: 14px; right: 14px; z-index: 10000; display: flex; align-items: center; gap: 10px; }
+  #label { font-size: 11px; letter-spacing: .05em; color: #fff; mix-blend-mode: difference; opacity: 0; transition: opacity .35s ease; white-space: nowrap; pointer-events: none; }
+  body:hover #label { opacity: .9; }
+  #regen { width: 36px; height: 36px; border-radius: 999px; border: none; cursor: pointer; font-size: 17px; line-height: 1; background: rgba(127,127,127,.22); color: #fff; backdrop-filter: blur(8px); mix-blend-mode: difference; display: grid; place-items: center; transition: transform .2s ease, background .2s ease; }
+  #regen:hover { background: rgba(127,127,127,.34); }
+  #regen:active { transform: rotate(180deg) scale(.9); }
+
+  #hint { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10000; font-size: 11px; letter-spacing: .06em; color: rgba(160,160,160,.95); mix-blend-mode: difference; pointer-events: none; transition: opacity 1s ease; opacity: .85; }
+</style>
+
+<div id="stage"><div id="art"></div></div>
+<div id="ui"><span id="label"></span><button id="regen" title="New piece (R)">&#8635;</button></div>
+
+<script type="module" src="./extension/js/main.js"></script>

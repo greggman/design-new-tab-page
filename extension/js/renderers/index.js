@@ -67,6 +67,22 @@ import maze from './maze.js';
 import shards from './shards.js';
 import argyle from './argyle.js';
 import warpBands from './warpBands.js';
+import perspectiveGrid from './perspectiveGrid.js';
+import wireframeTunnel from './wireframeTunnel.js';
+import lissajous from './lissajous.js';
+import spirograph from './spirograph.js';
+import glitch from './glitch.js';
+import waveform from './waveform.js';
+import hexGrid from './hexGrid.js';
+import barcode from './barcode.js';
+import kaleidoscope from './kaleidoscope.js';
+import opWaves from './opWaves.js';
+import hypnoRays from './hypnoRays.js';
+import plasma from './plasma.js';
+import dotSphere from './dotSphere.js';
+import starFlare from './starFlare.js';
+import chromeRings from './chromeRings.js';
+import zoomLines from './zoomLines.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -87,5 +103,9 @@ export const SYSTEMS = [
   ['Checkerboard', checkerboard, .5], ['Warped checker', checkerWarp, .5], ['Golden spiral', goldenSpiral, .3], ['Rosette', rosette, .35],
   ['Stained glass', stainedGlass, .5], ['Starfield', starfield, .3], ['Nested chevrons', nestedChevrons, .3], ['Gradient grid', gradientGrid, .4],
   ['Maze', maze, .45], ['Shards', shards, .45], ['Argyle', argyle, .5], ['Warp bands', warpBands, .45],
+  ['Perspective grid', perspectiveGrid, .4], ['Wireframe tunnel', wireframeTunnel, .4], ['Lissajous', lissajous, .3], ['Spirograph', spirograph, .3],
+  ['Glitch', glitch, .45], ['Waveform', waveform, .4], ['Hex grid', hexGrid, .5], ['Barcode', barcode, .5],
+  ['Kaleidoscope', kaleidoscope, .45], ['Op waves', opWaves, .45], ['Hypno rays', hypnoRays, .45], ['Plasma', plasma, .3],
+  ['Dot sphere', dotSphere, .4], ['Star flare', starFlare, .3], ['Chrome rings', chromeRings, .3], ['Zoom lines', zoomLines, .35],
 ];
 export default SYSTEMS;

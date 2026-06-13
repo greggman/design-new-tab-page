@@ -5,7 +5,7 @@
   body { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 
   #stage { position: fixed; inset: 0; overflow: hidden; user-select: none; }
-  #art { position: absolute; inset: 0; transform-origin: center center; }
+  #art { position: absolute; left: 0; top: 0; transform-origin: center center; will-change: transform; }
   .piece { position: absolute; }
 
   @keyframes fin { from { opacity: 0; transform: var(--t0); } to { opacity: var(--op,1); transform: var(--t1); } }

@@ -83,6 +83,18 @@ import dotSphere from './dotSphere.js';
 import starFlare from './starFlare.js';
 import chromeRings from './chromeRings.js';
 import zoomLines from './zoomLines.js';
+import suprematism from './suprematism.js';
+import flowField from './flowField.js';
+import quilt from './quilt.js';
+import interference from './interference.js';
+import isoCity from './isoCity.js';
+import crossStitch from './crossStitch.js';
+import warpGrid from './warpGrid.js';
+import mosaic from './mosaic.js';
+import spectrumRings from './spectrumRings.js';
+import galaxy from './galaxy.js';
+import hatchCells from './hatchCells.js';
+import dither from './dither.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -107,5 +119,8 @@ export const SYSTEMS = [
   ['Glitch', glitch, .45], ['Waveform', waveform, .4], ['Hex grid', hexGrid, .5], ['Barcode', barcode, .5],
   ['Kaleidoscope', kaleidoscope, .45], ['Op waves', opWaves, .45], ['Hypno rays', hypnoRays, .45], ['Plasma', plasma, .3],
   ['Dot sphere', dotSphere, .4], ['Star flare', starFlare, .3], ['Chrome rings', chromeRings, .3], ['Zoom lines', zoomLines, .35],
+  ['Suprematism', suprematism, .3], ['Flow field', flowField, .35], ['Quilt', quilt, .5], ['Interference', interference, .45],
+  ['Iso city', isoCity, .45], ['Cross-stitch', crossStitch, .45], ['Warp grid', warpGrid, .35], ['Mosaic', mosaic, .5],
+  ['Spectrum rings', spectrumRings, .45], ['Galaxy', galaxy, .35], ['Hatch cells', hatchCells, .4], ['Dither', dither, .5],
 ];
 export default SYSTEMS;

@@ -1,4 +1,4 @@
-export const ctx = { stage: null, vignette: null, label: null, root: null, W: 0, H: 0, S: 0, idx: 0, P: null, POOL: [] };
+export const ctx = { stage: null, label: null, root: null, W: 0, H: 0, S: 0, idx: 0, P: null, POOL: [] };
 
 /* ---------- random ---------- */
 export const rand = (a, b) => a + Math.random() * (b - a);
@@ -132,9 +132,7 @@ export function setBg() {
 }
 
 export function overlay() {
-  let frame = chance(.4) ? `border:${Math.round(ctx.S * rand(.025, .05))}px solid ${ctx.P.bg};` : '';
-  const v = ctx.P.dark ? 'radial-gradient(120% 120% at 50% 42%, transparent 55%, rgba(0,0,0,.42) 100%)' : 'radial-gradient(120% 120% at 50% 42%, transparent 62%, rgba(0,0,0,.12) 100%)';
-  ctx.vignette.setAttribute('style', `position:fixed;inset:0;pointer-events:none;z-index:9000;background:${v};${frame}box-shadow:inset 0 0 1px rgba(0,0,0,.2);`);
+  //
 }
 
 export const coverScale = deg => { const r = Math.abs(deg) * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return Math.max((ctx.W * c + ctx.H * s) / ctx.W, (ctx.W * s + ctx.H * c) / ctx.H) * 1.02; };

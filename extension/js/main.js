@@ -3,7 +3,6 @@ import SYSTEMS from './renderers/index.js';
 
 // initialize DOM refs
 ctx.stage = document.getElementById('stage');
-ctx.vignette = document.getElementById('vignette');
 ctx.label = document.getElementById('label');
 
 function compose() {

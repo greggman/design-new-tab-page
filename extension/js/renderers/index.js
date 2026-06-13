@@ -47,6 +47,26 @@ import ripple from './ripple.js';
 import aurora from './aurora.js';
 import seigaiha from './seigaiha.js';
 import colorField from './colorField.js';
+import contourLines from './contourLines.js';
+import polkaDots from './polkaDots.js';
+import plaid from './plaid.js';
+import weave from './weave.js';
+import terrazzo from './terrazzo.js';
+import memphis from './memphis.js';
+import mountains from './mountains.js';
+import arcTiles from './arcTiles.js';
+import checkerboard from './checkerboard.js';
+import checkerWarp from './checkerWarp.js';
+import goldenSpiral from './goldenSpiral.js';
+import rosette from './rosette.js';
+import stainedGlass from './stainedGlass.js';
+import starfield from './starfield.js';
+import nestedChevrons from './nestedChevrons.js';
+import gradientGrid from './gradientGrid.js';
+import maze from './maze.js';
+import shards from './shards.js';
+import argyle from './argyle.js';
+import warpBands from './warpBands.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -62,5 +82,10 @@ export const SYSTEMS = [
   ['Column stripes', columnStripes, .45], ['Rotating squares', rotatingSquares, .5], ['Confetti', confetti, .3], ['Tangram', tangram, .45],
   ['Bar stack', barStack, .4], ['Nested frames', nestedFrames, .3], ['Quarter fan', quarterFan, .4], ['Constellation', constellation, .25],
   ['Windmill tiles', windmillTiles, .5], ['Ripple', ripple, .45], ['Aurora', aurora, .3], ['Seigaiha', seigaiha, .45], ['Color field', colorField, .3],
+  ['Contour lines', contourLines, .35], ['Polka dots', polkaDots, .4], ['Plaid', plaid, .35], ['Basketweave', weave, .45],
+  ['Terrazzo', terrazzo, .4], ['Memphis', memphis, .4], ['Mountains', mountains, .4], ['Arc tiles', arcTiles, .5],
+  ['Checkerboard', checkerboard, .5], ['Warped checker', checkerWarp, .5], ['Golden spiral', goldenSpiral, .3], ['Rosette', rosette, .35],
+  ['Stained glass', stainedGlass, .5], ['Starfield', starfield, .3], ['Nested chevrons', nestedChevrons, .3], ['Gradient grid', gradientGrid, .4],
+  ['Maze', maze, .45], ['Shards', shards, .45], ['Argyle', argyle, .5], ['Warp bands', warpBands, .45],
 ];
 export default SYSTEMS;

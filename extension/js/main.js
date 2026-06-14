@@ -1,5 +1,6 @@
 import { ctx, makePalette, shuffle, mix, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
 import SYSTEMS from './renderers/index.js';
+import poster from './renderers/poster.js';
 
 const params = new URLSearchParams(globalThis.location?.search ?? '');
 
@@ -9,7 +10,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Poster']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -22,24 +23,20 @@ const COVERERS = new Set([
   'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Checkerboard', 'Warped checker',
   'Stained glass', 'Gradient grid', 'Argyle', 'Warp bands', 'Perspective grid', 'Glitch', 'Hex grid', 'Barcode', 'Op waves',
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
-  'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
+  'Low poly', 'Dazzle', 'Mudcloth', 'Café wall', 'Poster',
 ]);
 function compose() {
-  const busy = setBg();
-  const base = ctx.root.querySelectorAll('.piece').length;
-  const pool = busy > 0 ? SYSTEMS.filter(e => !COVERERS.has(e[0])) : SYSTEMS;
+  ctx.note = '';
+  // Debug: ?renderer=Name shows a single raw system (the pattern library). Poster manages its own
+  // background; every other system gets a plain fill behind it so you can inspect it cleanly.
   const p = (params.get('renderer') ?? '').toLowerCase();
   if (p) {
     const match = SYSTEMS.find(s => s[0].toLowerCase() === p);
-    if (match) {
-      safe(match[1])
-      return match[0];
-    }
+    if (match) { if (match[0] !== 'Poster') setBg(false); safe(match[1]); return match[0]; }
   }
-  const sys = wpick((pool.length ? pool : SYSTEMS).map(e => [e, e[2]]));
-  safe(sys[1]);
-  if (ctx.root.querySelectorAll('.piece').length <= base) { safe(() => { const fallback = SYSTEMS.find(s => s[0] === 'Concentric'); fallback[1](); }); return 'Fallback'; }
-  return sys[0];
+  // Default: always a composed poster. The pattern renderers live on as hero textures inside it.
+  safe(poster);
+  return 'Poster';
 }
 
 // The composition is laid out once in pixels at its "design size" (the window size when generated).
@@ -70,7 +67,7 @@ export function generate() {
   ctx.rot = (!NO_ROTATE.has(name) && Math.random() < .22) ? rand(-9, 9) : 0;
   refit();
   overlay();
-  ctx.label.textContent = `${name.toUpperCase()}  ·  ${ctx.P.name}  ·  ${ctx.POOL.length}C`;
+  ctx.label.textContent = `${name.toUpperCase()}  ·  ${ctx.P.name}${ctx.note ? '  ·  ' + ctx.note : '  ·  ' + ctx.POOL.length + 'C'}`;
 }
 
 // wire UI

@@ -1,6 +1,8 @@
 import { ctx, makePalette, shuffle, mix, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
 import SYSTEMS from './renderers/index.js';
 
+const params = new URLSearchParams(globalThis.location?.search ?? '');
+
 // initialize DOM refs
 ctx.stage = document.getElementById('stage');
 ctx.label = document.getElementById('label');
@@ -20,11 +22,20 @@ const COVERERS = new Set([
   'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Checkerboard', 'Warped checker',
   'Stained glass', 'Gradient grid', 'Argyle', 'Warp bands', 'Perspective grid', 'Glitch', 'Hex grid', 'Barcode', 'Op waves',
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
+  'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
 ]);
 function compose() {
   const busy = setBg();
   const base = ctx.root.querySelectorAll('.piece').length;
   const pool = busy > 0 ? SYSTEMS.filter(e => !COVERERS.has(e[0])) : SYSTEMS;
+  const p = (params.get('renderer') ?? '').toLowerCase();
+  if (p) {
+    const match = SYSTEMS.find(s => s[0].toLowerCase() === p);
+    if (match) {
+      safe(match[1])
+      return match[0];
+    }
+  }
   const sys = wpick((pool.length ? pool : SYSTEMS).map(e => [e, e[2]]));
   safe(sys[1]);
   if (ctx.root.querySelectorAll('.piece').length <= base) { safe(() => { const fallback = SYSTEMS.find(s => s[0] === 'Concentric'); fallback[1](); }); return 'Fallback'; }
@@ -71,5 +82,27 @@ addEventListener('resize', () => { if (refitPending) return; refitPending = requ
 
 // initial generate
 generate();
+
+if (params.get('list')) {
+  const t = document.createElement('div');
+  t.style.position = 'fixed';
+  t.style.columns = '200px';
+  t.style.top = '0';
+  t.style.left = '0';
+  t.style.columns = '200px'
+  t.style.color = '#FFF';
+  t.style.backgroundColor = 'rgba(0,0,0,.8)';
+  t.style.maxHeight = '100vh';
+  SYSTEMS.forEach(s => {
+    const l = document.createElement('div');
+    const a = document.createElement('a');
+    a.textContent = s[0];
+    a.href = `?renderer=${encodeURIComponent(s[0])}`;
+    a.style.color = 'inherit';
+    l.appendChild(a);
+    t.appendChild(l);
+  });
+  document.body.appendChild(t);
+}
 
 export default { generate };

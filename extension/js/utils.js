@@ -22,6 +22,15 @@ export function hslToHex(h, s, l) {
 }
 export const hexToRgb = h => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16)); };
 export const mix = (a, b, t) => '#' + hexToRgb(a).map((v, i) => Math.round(v + (hexToRgb(b)[i] - v) * t)).map(v => v.toString(16).padStart(2, '0')).join('');
+export const lum = hex => { const [r, g, b] = hexToRgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+// Two colors from `colors` (random, for variety) guaranteed to contrast; returns [lighter, darker].
+// If the random pair is too close in value, push them apart so two-tone patterns stay legible.
+export function contrastPair(colors) {
+  const s = shuffle(colors); let c1 = s[0], c2 = s[1] || s[0];
+  let a = lum(c1) >= lum(c2) ? c1 : c2, b = a === c1 ? c2 : c1;
+  if (lum(a) - lum(b) < 0.3) { a = mix(a, '#ffffff', .4); b = mix(b, '#000000', .4); }
+  return [a, b];
+}
 
 export const CURATED = [
   { name: 'BAUHAUS', bg: '#ece6d6', ink: '#1c1a17', colors: ['#d6402c', '#1f4e9b', '#e8b923'], accent: '#d6402c', dark: false },

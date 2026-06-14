@@ -95,6 +95,18 @@ import spectrumRings from './spectrumRings.js';
 import galaxy from './galaxy.js';
 import hatchCells from './hatchCells.js';
 import dither from './dither.js';
+import lowPoly from './lowPoly.js';
+import lattice from './lattice.js';
+import bokeh from './bokeh.js';
+import stipple from './stipple.js';
+import gears from './gears.js';
+import radar from './radar.js';
+import blueprint from './blueprint.js';
+import dazzle from './dazzle.js';
+import mudcloth from './mudcloth.js';
+import bubbles from './bubbles.js';
+import shellFan from './shellFan.js';
+import cafeWall from './cafeWall.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -122,5 +134,8 @@ export const SYSTEMS = [
   ['Suprematism', suprematism, .3], ['Flow field', flowField, .35], ['Quilt', quilt, .5], ['Interference', interference, .45],
   ['Iso city', isoCity, .45], ['Cross-stitch', crossStitch, .45], ['Warp grid', warpGrid, .35], ['Mosaic', mosaic, .5],
   ['Spectrum rings', spectrumRings, .45], ['Galaxy', galaxy, .35], ['Hatch cells', hatchCells, .4], ['Dither', dither, .5],
+  ['Low poly', lowPoly, .5], ['Lattice', lattice, .35], ['Bokeh', bokeh, .3], ['Stipple', stipple, .4],
+  ['Gears', gears, .35], ['Radar', radar, .35], ['Blueprint', blueprint, .4], ['Dazzle', dazzle, .5],
+  ['Mudcloth', mudcloth, .5], ['Bubbles', bubbles, .35], ['Shell fan', shellFan, .4], ['Café wall', cafeWall, .5],
 ];
 export default SYSTEMS;

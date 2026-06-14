@@ -9,11 +9,23 @@ ctx.label = document.getElementById('label');
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
 const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform']);
 
+// A composition is one foreground system over a background treatment from setBg(). These systems
+// fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
+// setBg draws anything other than a plain fill we choose the foreground from the *other* systems —
+// the ones that leave gaps/space for the background to show through. On a solid background, anything
+// goes (that's where the big full-bleed designs get to shine).
+const COVERERS = new Set([
+  'Tessellation', 'Swiss bands', 'Diagonal field', 'Triangle rows', 'Scallop grid', 'Isometric', 'Mondrian', 'Wave grid',
+  'Brick wall', 'Truchet', 'Halftone', 'Chevron rows', 'Column stripes', 'Rotating squares', 'Tangram', 'Windmill tiles',
+  'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Checkerboard', 'Warped checker',
+  'Stained glass', 'Gradient grid', 'Argyle', 'Warp bands', 'Perspective grid', 'Glitch', 'Hex grid', 'Barcode', 'Op waves',
+  'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
+]);
 function compose() {
   const busy = setBg();
   const base = ctx.root.querySelectorAll('.piece').length;
-  const candidates = SYSTEMS.filter(([, , d]) => busy < .5 || d <= .3);
-  const sys = wpick((candidates.length ? candidates : SYSTEMS).map(([n, f, w]) => [[n, f], w]));
+  const pool = busy > 0 ? SYSTEMS.filter(e => !COVERERS.has(e[0])) : SYSTEMS;
+  const sys = wpick((pool.length ? pool : SYSTEMS).map(e => [e, e[2]]));
   safe(sys[1]);
   if (ctx.root.querySelectorAll('.piece').length <= base) { safe(() => { const fallback = SYSTEMS.find(s => s[0] === 'Concentric'); fallback[1](); }); return 'Fallback'; }
   return sys[0];

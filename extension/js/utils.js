@@ -142,6 +142,21 @@ export function setBg() {
   const c = ri(2, 3), r = ri(2, 3), cw = ctx.W / c, ch = ctx.H / r, cs = shuffle([...ctx.POOL, ctx.P.accent]); let k = 0; times(r, ry => times(c, cx => box({ x: (cx + 0.5) * cw, y: (ry + 0.5) * ch, w: cw, h: ch, color: cs[(k++) % cs.length], z: -4 }))); return 0.45;
 }
 
+// Run a draw function (typically another renderer) confined to a sub-rectangle, in panel-local
+// coordinates and clipped to it. Saves/restores the global ctx so any existing renderer can be reused
+// as a contained "hero image" inside a composition. (x,y) is the panel CENTER, matching box().
+export function panel({ x, y, w, h, radius = 0, clip = null, bg = null, z = 0 }, draw) {
+  const d = document.createElement('div');
+  d.className = 'piece';
+  Object.assign(d.style, { position: 'absolute', left: (x - w / 2) + 'px', top: (y - h / 2) + 'px', width: w + 'px', height: h + 'px', overflow: 'hidden', zIndex: z, borderRadius: typeof radius === 'number' ? radius + 'px' : radius, clipPath: clip || 'none', background: bg || 'transparent' });
+  ctx.root.appendChild(d);
+  const save = { root: ctx.root, W: ctx.W, H: ctx.H, S: ctx.S, idx: ctx.idx };
+  ctx.root = d; ctx.W = w; ctx.H = h; ctx.S = Math.min(w, h); ctx.idx = 0;
+  try { draw(); } catch (e) { console.warn('hero skipped:', e); }
+  Object.assign(ctx, save);
+  return d;
+}
+
 export function overlay() {
   //
 }

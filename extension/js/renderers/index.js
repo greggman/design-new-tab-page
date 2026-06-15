@@ -107,6 +107,7 @@ import mudcloth from './mudcloth.js';
 import bubbles from './bubbles.js';
 import shellFan from './shellFan.js';
 import cafeWall from './cafeWall.js';
+import poster from './poster.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -137,5 +138,6 @@ export const SYSTEMS = [
   ['Low poly', lowPoly, .5], ['Lattice', lattice, .35], ['Bokeh', bokeh, .3], ['Stipple', stipple, .4],
   ['Gears', gears, .35], ['Radar', radar, .35], ['Blueprint', blueprint, .4], ['Dazzle', dazzle, .5],
   ['Mudcloth', mudcloth, .5], ['Bubbles', bubbles, .35], ['Shell fan', shellFan, .4], ['Café wall', cafeWall, .5],
+  ['Poster', poster, .6],
 ];
 export default SYSTEMS;

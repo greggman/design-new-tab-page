@@ -2,7 +2,9 @@ import { ctx, rand, ri, times, shuffle, box, mix, chance, circle, rings } from '
 // Radial bars: a polar bar chart — equal-angle spokes of varying length around a center.
 // Radial symmetry plus length variation reads as data made ornamental.
 export default function radialBars() {
-  const cx = ctx.W / 2 + rand(-.05, .05) * ctx.W, cy = ctx.H / 2 + rand(-.05, .05) * ctx.H, cs = shuffle([ctx.P.accent, ...ctx.POOL]);
+  const cx = rand(-.05, 1.05) * ctx.W
+  const cy = rand(-.05, 1.05) * ctx.H;
+  const cs = shuffle([ctx.P.accent, ...ctx.POOL]);
   const n = ri(18, 44), inner = ctx.S * rand(.05, .12), maxLen = ctx.S * rand(.26, .42), bw = ctx.S * rand(.012, .026);
   times(n, i => {
     const ang = i / n * 360, len = maxLen * rand(.32, 1), rr = inner + len / 2;

@@ -94,7 +94,10 @@ function generateTiles(w, h, count, rendererName) {
   document.body.style.background = '#0b0b0b';
   for (let i = 0; i < count; i++) {
     const tile = document.createElement('div');
-    Object.assign(tile.style, { display: 'inline-block', position: 'relative', overflow: 'hidden', flex: '0 0 auto' });
+    // `isolation: isolate` gives each tile its own stacking context so setBg's negative z-index
+    // background layers stay contained within the tile (full-page mode gets this from #art's
+    // transform). Without it those layers escape and only the flat fill shows.
+    Object.assign(tile.style, { display: 'inline-block', position: 'relative', overflow: 'hidden', flex: '0 0 auto', isolation: 'isolate' });
     const name = renderDesign(tile, w, h, rendererName);
     tile.title = `${name} · ${ctx.P.name}`;
     stage.appendChild(tile);

@@ -2,7 +2,10 @@ import { ctx, makePalette, paletteFromBase, normalizeHex, shuffle, mix, setBg, o
 import SYSTEMS from './renderers/index.js';
 
 const params = new URLSearchParams(globalThis.location?.search ?? '');
-const baseColor = normalizeHex(params.get('basecolor'));
+// Base color comes from the ?basecolor= URL param (dev / standalone use) or, in the extension, from
+// the color the user picked in the popup (persisted in chrome.storage). The URL param wins.
+const urlBase = normalizeHex(params.get('basecolor'));
+let baseColor = urlBase;
 
 // initialize DOM refs
 ctx.stage = document.getElementById('stage');
@@ -120,6 +123,24 @@ document.getElementById('regen').addEventListener('click', e => { e.stopPropagat
 // keep the design centered + filling the viewport as the window resizes (rAF-throttled)
 let refitPending = 0;
 addEventListener('resize', () => { if (refitPending) return; refitPending = requestAnimationFrame(() => { refitPending = 0; refit(); }); });
+
+// In the extension, load the popup-chosen base color before the first render (unless a URL param
+// already set one), and live-update if the user changes it in the popup while a new tab is open.
+const storage = globalThis.chrome?.storage;
+const store = storage?.sync ?? storage?.local;   // must match the area the popup writes to
+if (store && !urlBase) {
+  try {
+    const { basecolor } = await store.get('basecolor');
+    baseColor = normalizeHex(basecolor) ?? baseColor;
+  } catch { /* storage unavailable — fall back to random palettes */ }
+  // The popup bumps `nonce` on every click, so we re-generate even when the color is unchanged. When
+  // the color itself changed it's in `changes`; otherwise keep the current one (a nonce-only bump).
+  storage.onChanged?.addListener((changes, area) => {
+    if ((area !== 'sync' && area !== 'local') || !('basecolor' in changes || 'nonce' in changes)) return;
+    if ('basecolor' in changes) baseColor = normalizeHex(changes.basecolor.newValue);
+    generate();
+  });
+}
 
 // initial generate
 generate();

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Design New Tab — colors</title>
+    <style>
+      :root { color-scheme: light dark; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        width: 280px; padding: 16px;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12px; line-height: 1.4;
+        background: #fff; color: #1a1a1a;
+      }
+      @media (prefers-color-scheme: dark) { body { background: #1c1c1f; color: #ececf0; } }
+
+      h1 { font-size: 13px; letter-spacing: .04em; margin-bottom: 2px; }
+      p.sub { opacity: .6; margin-bottom: 14px; }
+
+      .picker { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+      #well {
+        width: 52px; height: 52px; padding: 0; border: none; border-radius: 12px;
+        background: none; cursor: pointer; flex: 0 0 auto;
+      }
+      #well::-webkit-color-swatch-wrapper { padding: 0; }
+      #well::-webkit-color-swatch { border: 1px solid rgba(127,127,127,.4); border-radius: 12px; }
+      #hex {
+        flex: 1; min-width: 0; font: inherit; text-transform: lowercase;
+        padding: 9px 10px; border-radius: 9px;
+        border: 1px solid rgba(127,127,127,.4); background: transparent; color: inherit;
+      }
+      #hex:focus { outline: 2px solid #6b8afd; outline-offset: 0; }
+
+      .swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 16px; }
+      .swatch { aspect-ratio: 1; border-radius: 7px; border: 1px solid rgba(127,127,127,.25); cursor: pointer; padding: 0; }
+      .swatch:hover { transform: scale(1.08); }
+
+      .row { display: flex; gap: 8px; }
+      button.action {
+        flex: 1; font: inherit; padding: 9px 10px; border-radius: 9px; cursor: pointer;
+        border: 1px solid rgba(127,127,127,.4); background: transparent; color: inherit;
+      }
+      button.action:hover { background: rgba(127,127,127,.14); }
+      /* background is set in JS to the chosen color; white label gets a dark outline so it stays
+         readable on light, dark, and saturated colors alike */
+      button.action.primary {
+        border-color: rgba(0,0,0,.18); color: #fff;
+        text-shadow: -1px -1px 0 rgba(0,0,0,.55), 1px -1px 0 rgba(0,0,0,.55), -1px 1px 0 rgba(0,0,0,.55), 1px 1px 0 rgba(0,0,0,.55);
+      }
+      button.action.primary:hover { filter: brightness(1.07); }
+
+      #status { margin-top: 12px; opacity: .6; min-height: 1.4em; }
+      #status.matching b { font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>New Tab Colors</h1>
+    <p class="sub">Match designs to your browser theme color.</p>
+
+    <div class="picker">
+      <input type="color" id="well" value="#a04d93" />
+      <input type="text" id="hex" inputmode="text" autocomplete="off" spellcheck="false" placeholder="#a04d93" />
+    </div>
+
+    <div class="swatches" id="swatches"></div>
+
+    <div class="row">
+      <button class="action primary" id="apply">Use this color</button>
+      <button class="action" id="random">Surprise me</button>
+    </div>
+
+    <p id="status"></p>
+
+    <script type="module" src="./js/popup.js"></script>
+  </body>
+</html>

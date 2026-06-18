@@ -6,6 +6,11 @@
   "chrome_url_overrides" : {
     "newtab": "newpage.html"
   },
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Design New Tab — choose a color"
+  },
   "icons": {
     "16":  "/images/icon-16.png",
     "32":  "/images/icon-32.png",

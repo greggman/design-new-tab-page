@@ -64,6 +64,76 @@ export function generatedPalette() {
 }
 export const makePalette = () => chance(0.5) ? { ...pick(CURATED) } : generatedPalette();
 
+// Inverse of hslToHex: returns [h(0-360), s(0-100), l(0-100)] for a hex color.
+export function hexToHsl(hex) {
+  const [r, g, b] = hexToRgb(hex).map(v => v / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (d) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
+  }
+  return [h, s * 100, l * 100];
+}
+
+// Build a palette that *harmonizes* with a user-supplied base color (e.g. the browser's theme color)
+// so designs sit well next to the surrounding chrome (toolbar / vertical-tab strip) without clashing.
+// The base color is treated as an anchor HUE, not a literal background: every call re-rolls a color
+// scheme (complementary / triadic / analogous / …), a mood, and light-vs-dark, all rooted at that
+// hue. This mirrors generatedPalette() but seeded from the base hue, so a batch sharing one base
+// color spans a wide, coordinated range instead of looking identical. The literal base color is
+// dropped into the mix some of the time so the theme color itself shows up.
+export function paletteFromBase(hex) {
+  const [bh, bs] = hexToHsl(hex);
+  const scheme = pick(['analog', 'analog-wide', 'comp', 'split', 'triad', 'tetrad']);
+  const off = {
+    analog: [0, 30, -30, 60], 'analog-wide': [0, 45, -45, 90], comp: [0, 180, 30, 210],
+    split: [0, 150, 210], triad: [0, 120, 240], tetrad: [0, 90, 180, 270],
+  }[scheme];
+  const hues = off.map(o => bh + o + rand(-6, 6));
+
+  // Background: a ground a designer might actually choose for this theme — not just a neutral tint.
+  // It sits on one of the harmonized hues and takes one of several "tones": airy paper, soft pastel,
+  // near-black ink, a deep jewel shade, or a muted mid-tone (dusty rose / sage / teal etc).
+  const bgHue = pick(hues);
+  const tone = wpick([['paper', 3], ['tint', 2.5], ['ink', 3], ['jewel', 2], ['dusk', 1.5]]);
+  const bg = {
+    paper: () => hslToHex(bgHue + rand(-10, 10), rand(8, 26), rand(90, 96)),
+    tint: () => hslToHex(bgHue + rand(-8, 8), rand(28, 52), rand(80, 90)),
+    ink: () => hslToHex(bgHue + rand(-10, 10), rand(20, 48), rand(7, 15)),
+    jewel: () => hslToHex(bgHue + rand(-8, 8), rand(45, 72), rand(16, 28)),
+    dusk: () => hslToHex(bgHue + rand(-8, 8), rand(22, 46), rand(38, 52)),
+  }[tone]();
+  const dark = lum(bg) < 0.5;
+
+  // Foreground colors: the harmonized hues, saturated per a random "mood", with lightness chosen to
+  // read against whatever ground was picked (lighter on dark grounds, deeper on light ones).
+  const moods = { vibrant: [72, 90], muted: [32, 52], pastel: [40, 60], earthy: [38, 56], deep: [58, 80] };
+  const mood = pick(Object.keys(moods)), sr = moods[mood];
+  const lr = dark ? [54, 74] : [34, 54];
+  const colors = hues.map(h => hslToHex(h, rand(...sr), clamp(rand(...lr) + rand(-6, 6), 14, 86)));
+  if (bs > 8 && chance(0.5) && Math.abs(lum(hex) - lum(bg)) > 0.22) colors[ri(0, colors.length - 1)] = hex;
+
+  return {
+    name: 'BASE·' + scheme.toUpperCase() + '·' + tone.toUpperCase(),
+    bg,
+    ink: dark ? hslToHex(bh, 14, 90) : hslToHex(bh, 22, 12),
+    colors,
+    accent: hslToHex(bh + 180, rand(78, 92), dark ? 58 : 52),
+    dark,
+  };
+}
+
+// Accept a hex color with or without '#', 3 or 6 digits (URL fragments drop the '#', so callers
+// typically pass it bare). Returns a normalized '#rrggbb' string, or null if not a valid hex.
+export function normalizeHex(v) {
+  if (!v) return null;
+  let h = v.trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map(c => c + c).join('');
+  return /^[0-9a-f]{6}$/i.test(h) ? '#' + h.toLowerCase() : null;
+}
+
 /* ---------- clip-path shapes ---------- */
 export const CLIPS = {
   triangle: 'polygon(50% 0%,100% 100%,0% 100%)', diamond: 'polygon(50% 0%,100% 50%,50% 100%,0% 50%)',

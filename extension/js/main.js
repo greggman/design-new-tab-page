@@ -1,7 +1,8 @@
-import { ctx, makePalette, shuffle, mix, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
+import { ctx, makePalette, paletteFromBase, normalizeHex, shuffle, mix, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
 import SYSTEMS from './renderers/index.js';
 
 const params = new URLSearchParams(globalThis.location?.search ?? '');
+const baseColor = normalizeHex(params.get('basecolor'));
 
 // initialize DOM refs
 ctx.stage = document.getElementById('stage');
@@ -24,11 +25,11 @@ const COVERERS = new Set([
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
 ]);
-function compose() {
+function compose(rendererName) {
   const busy = setBg();
   const base = ctx.root.querySelectorAll('.piece').length;
   const pool = busy > 0 ? SYSTEMS.filter(e => !COVERERS.has(e[0])) : SYSTEMS;
-  const p = (params.get('renderer') ?? '').toLowerCase();
+  const p = (rendererName ?? '').toLowerCase();
   if (p) {
     const match = SYSTEMS.find(s => s[0].toLowerCase() === p);
     if (match) {
@@ -55,22 +56,62 @@ function fitTransform() {
 }
 export function refit() { if (ctx.root) ctx.root.style.transform = fitTransform(); }
 
-export function generate() {
-  ctx.W = innerWidth; ctx.H = innerHeight; ctx.S = Math.min(ctx.W, ctx.H); ctx.idx = 0;
-  ctx.designW = ctx.W; ctx.designH = ctx.H;
-  ctx.P = makePalette();
+// Lay out one design at w×h pixels into `root`. Shared by the full-viewport mode and tile mode;
+// the renderers all draw into ctx.root using ctx.W/ctx.H, so we just point those at the target.
+function renderDesign(root, w, h, rendererName) {
+  ctx.W = w; ctx.H = h; ctx.S = Math.min(w, h); ctx.idx = 0;
+  ctx.designW = w; ctx.designH = h;
+  ctx.P = baseColor ? paletteFromBase(baseColor) : makePalette();
   ctx.POOL = shuffle(ctx.P.colors).slice(0, ri(2, Math.max(2, ctx.P.colors.length)));
   if (ctx.POOL.length < 2) ctx.POOL = [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.bg, .35)];
+  ctx.root = root;
+  root.style.width = w + 'px';
+  root.style.height = h + 'px';
+  return compose(rendererName);
+}
+
+// Default: one design filling the whole viewport, scaled/centered on resize and optionally tilted.
+function generateSingle(rendererName) {
   ctx.stage.innerHTML = '<div id="art"></div>';
-  ctx.root = document.getElementById('art');
-  ctx.root.style.width = ctx.designW + 'px';
-  ctx.root.style.height = ctx.designH + 'px';
+  const name = renderDesign(document.getElementById('art'), innerWidth, innerHeight, rendererName);
   document.body.style.background = ctx.P.bg;
-  const name = compose();
   ctx.rot = (!NO_ROTATE.has(name) && Math.random() < .22) ? rand(-9, 9) : 0;
   refit();
   overlay();
   ctx.label.textContent = `${name.toUpperCase()}  ·  ${ctx.P.name}  ·  ${ctx.POOL.length}C`;
+}
+
+// ?w / ?h / ?count mode: generate `count` fixed-size inline-block tiles that wrap and scroll.
+function generateTiles(w, h, count, rendererName) {
+  ctx.rot = 0;
+  const stage = ctx.stage;
+  stage.innerHTML = '';
+  Object.assign(stage.style, { overflow: 'auto', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: '12px', padding: '12px' });
+  document.body.style.overflow = 'auto';
+  document.body.style.background = '#0b0b0b';
+  for (let i = 0; i < count; i++) {
+    const tile = document.createElement('div');
+    Object.assign(tile.style, { display: 'inline-block', position: 'relative', overflow: 'hidden', flex: '0 0 auto' });
+    const name = renderDesign(tile, w, h, rendererName);
+    tile.title = `${name} · ${ctx.P.name}`;
+    stage.appendChild(tile);
+  }
+  ctx.label.textContent = `${count} × ${w}×${h}`;
+}
+
+export function generate() {
+  const rendererName = params.get('renderer');
+  const wRaw = params.get('w'), hRaw = params.get('h'), countRaw = params.get('count');
+  const tileMode = wRaw != null || hRaw != null || countRaw != null;
+  if (!tileMode) { generateSingle(rendererName); return; }
+  let w = parseInt(wRaw, 10), h = parseInt(hRaw, 10);
+  const hasW = Number.isFinite(w), hasH = Number.isFinite(h);
+  if (!hasW) w = hasH ? h : 300;
+  if (!hasH) h = hasW ? w : 300;
+  let count = parseInt(countRaw, 10);
+  if (!Number.isFinite(count) || count < 1) count = 1;
+  count = Math.min(count, 1000);
+  generateTiles(w, h, count, rendererName);
 }
 
 // wire UI

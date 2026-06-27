@@ -124,45 +124,43 @@ export function hexToHsl(hex) {
 // dropped into the mix some of the time so the theme color itself shows up.
 export function paletteFromBase(hex) {
   const [, bC0, bH] = hexToOklch(hex);
-  const bC = bC0 < 0.04 ? 0.13 : bC0;              // gray base → give the family real chroma
+  const sat = clamp(bC0 < 0.05 ? 0.15 : bC0, 0.08, 0.2) * rand(0.7, 1.15);   // per-palette vibrancy
 
-  // "Natural light" hue shifting in OKLCH: as a shade gets lighter its hue drifts one way and its
-  // chroma fades (toward a pastel/cream); as it gets darker the hue drifts back and chroma holds
-  // (toward a deep ink). Because OKLCH lightness is perceptually uniform, the whole ramp reads as one
-  // cohesive family at even brightness steps — no mid-lightness "olive", no blown-out light step.
-  const drift = rand(6, 18), warm = chance(0.6) ? 1 : -1;
-  const shade = (L, cMul = 1) => oklchToHex(L, clamp(bC * cMul * (L > 0.62 ? 1 - 0.5 * (L - 0.62) / 0.38 : 1 + 0.14 * (0.62 - L) / 0.56), 0.008, 0.32), bH + warm * (L - 0.62) / 0.42 * drift);
+  // ColorHunt-style palettes get their variety from genuinely different HUES — analogous sweeps AND
+  // complementary / split / triadic jumps (purple+teal, purple+gold, purple+green). So we pick a hue
+  // SCHEME of offsets from the base hue that includes those jumps; the value ramp + chroma modulation
+  // below is what keeps a multi-hue scheme looking curated rather than like a clown palette.
+  const fan = (a, b, k) => Array.from({ length: k }, (_, i) => a + (b - a) * (k === 1 ? 0.5 : i / (k - 1)));
+  const d = () => choice([1, -1]);
+  const [schemeName, schemeFn] = wpick([
+    [['ANALOG', () => fan(-rand(20, 40), rand(20, 55), ri(3, 5))], 3],                                  // tight arc
+    [['SWEEP', () => { const s = d() * rand(70, 150), o = rand(0, 1); return fan(-o * s, (1 - o) * s, ri(3, 5)); }], 3], // wide arc through base
+    [['COMPLEMENT', () => [0, d() * rand(15, 35), d() * rand(20, 50), rand(155, 200)]], 2.5],           // 3 near-base + a teal/green jump
+    [['SPLIT', () => [0, d() * rand(18, 40), rand(150, 172), rand(188, 212)]], 1.6],                    // base + green + teal
+    [['WARM', () => [0, rand(35, 70), rand(75, 110), rand(115, 150)]], 2],                              // purple→red→orange→gold
+    [['TRIAD', () => [0, d() * rand(18, 40), rand(110, 140), rand(225, 250)]], 1.2],                    // base + green + orange
+  ]);
+  const hues = schemeFn().map(o => bH + o);
+  const n = hues.length;
 
+  // value ramp — a light (cream/pastel), a dark, and mids — SHUFFLED across the hues so brightness
+  // isn't tied to a fixed hue. This value hierarchy is what makes multi-hue schemes read as designed.
+  const Ls = shuffle(fan(rand(0.86, 0.95), rand(0.26, 0.40), n));
+  const colors = hues.map((H, i) => {
+    const L = clamp(Ls[i] + rand(-0.03, 0.03), 0.16, 0.96);
+    // pastel at the light end, vivid in the mids, moderate when dark; occasionally mute one toward gray
+    let C = sat * (L > 0.82 ? rand(0.3, 0.6) : L < 0.42 ? rand(0.6, 0.95) : rand(0.95, 1.3));
+    if (chance(0.14)) C *= 0.4;
+    return oklchToHex(L, clamp(C, 0.015, 0.26), H);
+  }).sort((a, b) => hexToOklch(b)[0] - hexToOklch(a)[0]);   // order light → dark for a clean card
+
+  // design ground + accent derived from the palette (kept clean for legibility, not shown in the grid)
   const dark = chance(0.42);
-
-  // The "80%": a hue-shifted ramp of three same-family shades, on the readable side of the ground.
-  const colors = dark
-    ? [shade(rand(0.42, 0.52)), shade(rand(0.60, 0.70)), shade(rand(0.82, 0.92), 0.7)]
-    : [shade(rand(0.36, 0.46)), shade(rand(0.54, 0.64)), shade(rand(0.80, 0.90), 0.72)];
-
-  // The "20%": maybe ONE accent that leaves the family, kept lightness-/chroma-constrained so it can't
-  // overpower. A bright amber/gold (rotated to the yellow region and placed high-L), an analogous
-  // pink/blue extension, or — rarely — a deliberately muted complement.
-  if (chance(0.5)) {
-    colors.push(wpick([
-      [() => oklchToHex(rand(0.80, 0.90), clamp(bC * rand(0.55, 0.9), 0.06, 0.15), bH + rand(95, 122)), 3.2],          // gold / amber pop
-      [() => oklchToHex(rand(0.55, 0.74), clamp(bC * rand(0.7, 1.05), 0.05, 0.2), bH + choice([1, -1]) * rand(22, 52)), 3], // analogous extension
-      [() => oklchToHex(dark ? rand(0.62, 0.74) : rand(0.5, 0.62), clamp(bC * rand(0.28, 0.46), 0.025, 0.08), bH + 180 + rand(-12, 12)), 0.6], // muted complement (rare)
-    ])());
-  }
-
-  // One hue-tinted neutral from the opposite value end — real palettes lean on cream / near-black.
-  if (chance(0.7)) colors.push(dark ? shade(rand(0.90, 0.96), 0.4) : shade(rand(0.20, 0.30), 1.0));
-
-  // accent ("pop" color for many renderers): usually a vivid in-family shade, sometimes amber/gold.
-  const accent = chance(0.55)
-    ? shade(dark ? rand(0.60, 0.70) : rand(0.52, 0.62), 1.3)
-    : oklchToHex(dark ? 0.82 : 0.74, clamp(bC * 0.8, 0.07, 0.14), bH + rand(95, 122));
-
+  const accent = colors.reduce((m, c) => hexToOklch(c)[1] > hexToOklch(m)[1] ? c : m, colors[0]);
   return {
-    name: 'BASE·' + (dark ? 'DARK' : 'LIGHT'),
-    bg: dark ? shade(rand(0.14, 0.20), 0.85) : shade(rand(0.94, 0.97), 0.4),   // ground = an extreme of the family
-    ink: dark ? shade(0.95, 0.35) : shade(0.22, 1.0),
+    name: 'BASE·' + schemeName,
+    bg: dark ? oklchToHex(rand(0.13, 0.19), clamp(sat * 0.4, 0.02, 0.08), bH) : oklchToHex(rand(0.93, 0.97), clamp(sat * 0.28, 0.008, 0.045), bH),
+    ink: dark ? oklchToHex(0.95, 0.02, bH) : oklchToHex(0.2, clamp(sat * 0.5, 0.02, 0.1), bH),
     colors,
     accent,
     dark,

@@ -105,7 +105,43 @@ function generateTiles(w, h, count, rendererName) {
   ctx.label.textContent = `${count} × ${w}×${h}`;
 }
 
+// ?palettes=N mode: a ColorHunt-style grid of N palette cards (stacked color bars), so many palettes
+// can be compared at a glance. Uses the basecolor palette when set, otherwise random palettes.
+function generatePaletteGrid(n) {
+  const stage = ctx.stage;
+  stage.innerHTML = '';
+  Object.assign(stage.style, { overflow: 'auto', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: '14px', padding: '16px' });
+  document.body.style.overflow = 'auto';
+  document.body.style.background = '#444';
+  for (let i = 0; i < n; i++) {
+    const card = document.createElement('div');
+    const P = baseColor ? paletteFromBase(baseColor) : makePalette();
+    const cap = document.createElement('div');
+    Object.assign(cap.style, { font: '10px ui-monospace, Menlo, monospace', letterSpacing: '.04em', color: '#aaa', padding: '6px 8px', background: '#161616', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' });
+    cap.textContent = P.name;
+    card.appendChild(cap);
+    const bars = P.colors;   // the palette itself (ColorHunt-style color bars)
+    Object.assign(card.style, { display: 'inline-flex', flexDirection: 'column', width: '150px', flex: '0 0 auto', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,.4)' });
+    for (const c of bars) {
+      const bar = document.createElement('div');
+      Object.assign(bar.style, { height: '34px', background: c });
+      bar.title = c;
+      card.appendChild(bar);
+    }
+    card.title = bars.join('  ');
+    stage.appendChild(card);
+  }
+  ctx.label.textContent = `${n} palettes${baseColor ? ' · ' + baseColor : ''}`;
+}
+
 export function generate() {
+  const palRaw = params.get('palettes');
+  if (palRaw != null) {
+    let n = parseInt(palRaw, 10);
+    if (!Number.isFinite(n) || n < 1) n = 1;
+    generatePaletteGrid(Math.min(n, 2000));
+    return;
+  }
   const rendererName = params.get('renderer');
   const wRaw = params.get('w'), hRaw = params.get('h'), countRaw = params.get('count');
   const tileMode = wRaw != null || hRaw != null || countRaw != null;

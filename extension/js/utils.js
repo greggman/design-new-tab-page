@@ -64,6 +64,44 @@ export function generatedPalette() {
 }
 export const makePalette = () => chance(0.5) ? { ...pick(CURATED) } : generatedPalette();
 
+/* ---------- OKLCH (perceptually-uniform color) ----------
+   OKLCH is what CSS Color 4 exposes as oklch(L C H). We generate palettes in this space because, unlike
+   HSL, equal lightness reads as equal brightness across hues (so a hue shift never randomly turns muddy
+   or blows out), and a hue at fixed L/C stays the same apparent value (no mid-lightness "olive"). We do
+   the math here and emit sRGB hex so the rest of the code (mix/lum/renderers) is unchanged. Coefficients
+   are Björn Ottosson's. Out-of-gamut colors are mapped in by reducing chroma at constant L and H — the
+   same strategy the CSS engine uses for oklch(). */
+const _srgbToLinear = c => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const _linearToSrgb = c => c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
+function _linearToOklab(r, g, b) {
+  const l = Math.cbrt(0.412221469470763 * r + 0.5363325372617348 * g + 0.0514459932675022 * b);
+  const m = Math.cbrt(0.2119034958178252 * r + 0.6806995506452344 * g + 0.1073969535369406 * b);
+  const s = Math.cbrt(0.0883024591900564 * r + 0.2817188391361215 * g + 0.6299787016738222 * b);
+  return [0.210454268309314 * l + 0.7936177747023054 * m - 0.0040720430116193 * s, 1.9779985324311684 * l - 2.4285922420485799 * m + 0.450593709617411 * s, 0.0259040424655478 * l + 0.7827717124575296 * m - 0.8086757549230774 * s];
+}
+function _oklabToLinear(L, a, b) {
+  const l_ = (L + 0.3963377773761749 * a + 0.2158037573099136 * b) ** 3, m_ = (L - 0.1055613458156586 * a - 0.0638541728258133 * b) ** 3, s_ = (L - 0.0894841775298119 * a - 1.2914855480194092 * b) ** 3;
+  return [4.0767416360759574 * l_ - 3.3077115392580616 * m_ + 0.2309699031821044 * s_, -1.2684379732850317 * l_ + 2.6097573492876887 * m_ - 0.3413193760026573 * s_, -0.0041960761386756 * l_ - 0.7034186179359362 * m_ + 1.7076146940746117 * s_];
+}
+// hex → [L (0–1), C (≈0–0.37), H (0–360°)]
+export function hexToOklch(hex) {
+  const [r, g, b] = hexToRgb(hex).map(v => _srgbToLinear(v / 255));
+  const [L, a, bb] = _linearToOklab(r, g, b);
+  let H = Math.atan2(bb, a) * 180 / Math.PI;
+  return [L, Math.hypot(a, bb), H < 0 ? H + 360 : H];
+}
+const _inGamut = ([r, g, b]) => r >= -1e-4 && r <= 1.0001 && g >= -1e-4 && g <= 1.0001 && b >= -1e-4 && b <= 1.0001;
+// [L, C, H] → sRGB hex, reducing chroma (keeping L and H) until the color fits the sRGB gamut.
+export function oklchToHex(L, C, H) {
+  L = clamp(L, 0, 1);
+  const hr = H * Math.PI / 180, lin = c => _oklabToLinear(L, c * Math.cos(hr), c * Math.sin(hr));
+  let lo = 0, hi = Math.max(0, C);
+  if (!_inGamut(lin(hi))) { for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (_inGamut(lin(mid))) lo = mid; else hi = mid; } } else lo = hi;
+  const to = x => Math.round(clamp(_linearToSrgb(clamp(x, 0, 1)), 0, 1) * 255).toString(16).padStart(2, '0');
+  const [r, g, b] = lin(lo);
+  return '#' + to(r) + to(g) + to(b);
+}
+
 // Inverse of hslToHex: returns [h(0-360), s(0-100), l(0-100)] for a hex color.
 export function hexToHsl(hex) {
   const [r, g, b] = hexToRgb(hex).map(v => v / 255);
@@ -85,42 +123,48 @@ export function hexToHsl(hex) {
 // color spans a wide, coordinated range instead of looking identical. The literal base color is
 // dropped into the mix some of the time so the theme color itself shows up.
 export function paletteFromBase(hex) {
-  const [bh, bs] = hexToHsl(hex);
-  const scheme = pick(['analog', 'analog-wide', 'comp', 'split', 'triad', 'tetrad']);
-  const off = {
-    analog: [0, 30, -30, 60], 'analog-wide': [0, 45, -45, 90], comp: [0, 180, 30, 210],
-    split: [0, 150, 210], triad: [0, 120, 240], tetrad: [0, 90, 180, 270],
-  }[scheme];
-  const hues = off.map(o => bh + o + rand(-6, 6));
+  const [, bC0, bH] = hexToOklch(hex);
+  const bC = bC0 < 0.04 ? 0.13 : bC0;              // gray base → give the family real chroma
 
-  // Background: a ground a designer might actually choose for this theme — not just a neutral tint.
-  // It sits on one of the harmonized hues and takes one of several "tones": airy paper, soft pastel,
-  // near-black ink, a deep jewel shade, or a muted mid-tone (dusty rose / sage / teal etc).
-  const bgHue = pick(hues);
-  const tone = wpick([['paper', 3], ['tint', 2.5], ['ink', 3], ['jewel', 2], ['dusk', 1.5]]);
-  const bg = {
-    paper: () => hslToHex(bgHue + rand(-10, 10), rand(8, 26), rand(90, 96)),
-    tint: () => hslToHex(bgHue + rand(-8, 8), rand(28, 52), rand(80, 90)),
-    ink: () => hslToHex(bgHue + rand(-10, 10), rand(20, 48), rand(7, 15)),
-    jewel: () => hslToHex(bgHue + rand(-8, 8), rand(45, 72), rand(16, 28)),
-    dusk: () => hslToHex(bgHue + rand(-8, 8), rand(22, 46), rand(38, 52)),
-  }[tone]();
-  const dark = lum(bg) < 0.5;
+  // "Natural light" hue shifting in OKLCH: as a shade gets lighter its hue drifts one way and its
+  // chroma fades (toward a pastel/cream); as it gets darker the hue drifts back and chroma holds
+  // (toward a deep ink). Because OKLCH lightness is perceptually uniform, the whole ramp reads as one
+  // cohesive family at even brightness steps — no mid-lightness "olive", no blown-out light step.
+  const drift = rand(6, 18), warm = chance(0.6) ? 1 : -1;
+  const shade = (L, cMul = 1) => oklchToHex(L, clamp(bC * cMul * (L > 0.62 ? 1 - 0.5 * (L - 0.62) / 0.38 : 1 + 0.14 * (0.62 - L) / 0.56), 0.008, 0.32), bH + warm * (L - 0.62) / 0.42 * drift);
 
-  // Foreground colors: the harmonized hues, saturated per a random "mood", with lightness chosen to
-  // read against whatever ground was picked (lighter on dark grounds, deeper on light ones).
-  const moods = { vibrant: [72, 90], muted: [32, 52], pastel: [40, 60], earthy: [38, 56], deep: [58, 80] };
-  const mood = pick(Object.keys(moods)), sr = moods[mood];
-  const lr = dark ? [54, 74] : [34, 54];
-  const colors = hues.map(h => hslToHex(h, rand(...sr), clamp(rand(...lr) + rand(-6, 6), 14, 86)));
-  if (bs > 8 && chance(0.5) && Math.abs(lum(hex) - lum(bg)) > 0.22) colors[ri(0, colors.length - 1)] = hex;
+  const dark = chance(0.42);
+
+  // The "80%": a hue-shifted ramp of three same-family shades, on the readable side of the ground.
+  const colors = dark
+    ? [shade(rand(0.42, 0.52)), shade(rand(0.60, 0.70)), shade(rand(0.82, 0.92), 0.7)]
+    : [shade(rand(0.36, 0.46)), shade(rand(0.54, 0.64)), shade(rand(0.80, 0.90), 0.72)];
+
+  // The "20%": maybe ONE accent that leaves the family, kept lightness-/chroma-constrained so it can't
+  // overpower. A bright amber/gold (rotated to the yellow region and placed high-L), an analogous
+  // pink/blue extension, or — rarely — a deliberately muted complement.
+  if (chance(0.5)) {
+    colors.push(wpick([
+      [() => oklchToHex(rand(0.80, 0.90), clamp(bC * rand(0.55, 0.9), 0.06, 0.15), bH + rand(95, 122)), 3.2],          // gold / amber pop
+      [() => oklchToHex(rand(0.55, 0.74), clamp(bC * rand(0.7, 1.05), 0.05, 0.2), bH + choice([1, -1]) * rand(22, 52)), 3], // analogous extension
+      [() => oklchToHex(dark ? rand(0.62, 0.74) : rand(0.5, 0.62), clamp(bC * rand(0.28, 0.46), 0.025, 0.08), bH + 180 + rand(-12, 12)), 0.6], // muted complement (rare)
+    ])());
+  }
+
+  // One hue-tinted neutral from the opposite value end — real palettes lean on cream / near-black.
+  if (chance(0.7)) colors.push(dark ? shade(rand(0.90, 0.96), 0.4) : shade(rand(0.20, 0.30), 1.0));
+
+  // accent ("pop" color for many renderers): usually a vivid in-family shade, sometimes amber/gold.
+  const accent = chance(0.55)
+    ? shade(dark ? rand(0.60, 0.70) : rand(0.52, 0.62), 1.3)
+    : oklchToHex(dark ? 0.82 : 0.74, clamp(bC * 0.8, 0.07, 0.14), bH + rand(95, 122));
 
   return {
-    name: 'BASE·' + scheme.toUpperCase() + '·' + tone.toUpperCase(),
-    bg,
-    ink: dark ? hslToHex(bh, 14, 90) : hslToHex(bh, 22, 12),
+    name: 'BASE·' + (dark ? 'DARK' : 'LIGHT'),
+    bg: dark ? shade(rand(0.14, 0.20), 0.85) : shade(rand(0.94, 0.97), 0.4),   // ground = an extreme of the family
+    ink: dark ? shade(0.95, 0.35) : shade(0.22, 1.0),
     colors,
-    accent: hslToHex(bh + 180, rand(78, 92), dark ? 58 : 52),
+    accent,
     dark,
   };
 }

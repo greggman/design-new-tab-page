@@ -146,12 +146,32 @@ export function paletteFromBase(hex) {
   // value ramp — a light (cream/pastel), a dark, and mids — SHUFFLED across the hues so brightness
   // isn't tied to a fixed hue. This value hierarchy is what makes multi-hue schemes read as designed.
   const Ls = shuffle(fan(rand(0.86, 0.95), rand(0.26, 0.40), n));
-  const colors = hues.map((H, i) => {
+  // green gate: across ColorHunt tags the complement is used freely (red+cyan, orange+blue ~30%), so
+  // we DON'T suppress it. What curated palettes lean on least is the green-leaning arc — pure green plus
+  // the turquoise/sea-green on one side and, critically, OLIVE on the other. Two cases get nudged out:
+  //   1. greens/teals NOT analogous to the base (a stray complement landing in green) → clean cyan/blue
+  //      or orange; skipped when within 34° of the base so a green/teal base keeps its family.
+  //   2. olive — i.e. a yellow/yellow-green hue that's been DARKENED (dark yellow reads khaki/green, no
+  //      matter the base, including a yellow base whose own dark shades go olive). These snap warm so
+  //      they darken to clean brown/amber instead. Bright (light) yellows are untouched.
+  // Pale low-chroma yellow-greens (creams) pass through either way.
+  const colors = hues.map((H0, i) => {
     const L = clamp(Ls[i] + rand(-0.03, 0.03), 0.16, 0.96);
-    // pastel at the light end, vivid in the mids, moderate when dark; occasionally mute one toward gray
     let C = sat * (L > 0.82 ? rand(0.3, 0.6) : L < 0.42 ? rand(0.6, 0.95) : rand(0.95, 1.3));
     if (chance(0.14)) C *= 0.4;
-    return oklchToHex(L, clamp(C, 0.015, 0.26), H);
+    C = clamp(C, 0.015, 0.26);
+    let H = ((H0 % 360) + 360) % 360;
+    let dh = Math.abs(H - bH) % 360; if (dh > 180) dh = 360 - dh;       // angular distance to base hue
+    const lightCream = L >= 0.82;
+    const muddy =
+      (H > 95 && H < 138 && L < 0.80) ||                               // olive / dark-yellow (any base: dark yellow reads khaki)
+      (H > 100 && H < 192 && dh > 32 && L < 0.82) ||                   // green/teal not in the base family
+      (H > 116 && H < 190 && dh > 20 && lightCream);                   // pale mint/chartreuse cream not in family
+    if (C > 0.04 && muddy && chance(0.9)) {
+      if (lightCream) H = H < 150 ? rand(98, 112) : rand(216, 246);    // → pale yellow or pale blue cream
+      else H = H < 147 ? rand(38, 74) : rand(212, 250);                // → clean rust/orange or cyan/blue
+    }
+    return oklchToHex(L, C, H);
   }).sort((a, b) => hexToOklch(b)[0] - hexToOklch(a)[0]);   // order light → dark for a clean card
 
   // design ground + accent derived from the palette (kept clean for legibility, not shown in the grid)

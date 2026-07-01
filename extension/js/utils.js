@@ -11,6 +11,7 @@ export const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 export const times = (n, f) => { for (let i = 0; i < n; i++) f(i); };
 export const safe = fn => { try { fn(); } catch (e) { console.warn('layer skipped:', e); } };
+export const range = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 
 /* ---------- color ---------- */
 export function hslToHex(h, s, l) {
@@ -227,6 +228,16 @@ export function el(style, t0, t1, anim = true) {
   } else if (t1) d.style.transform = t1;
   ctx.root.appendChild(d); ctx.idx++; return d;
 }
+
+export function group(style, t0, t1, fn) {
+  const g = el(style, t0, t1);
+  const origRoot = ctx.root;
+  ctx.root = g;
+  fn();
+  ctx.root = origRoot;
+  return g;
+}
+
 export function box({ x, y, w, h, color, rot = 0, radius = 0, opacity = 1, blend, z = 0, clip, border }) {
   return el({ left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', background: color || 'transparent', borderRadius: typeof radius === 'number' ? radius + 'px' : radius, opacity, mixBlendMode: blend || 'normal', zIndex: z, clipPath: clip || 'none', border: border || 'none' },
     `translate(-50%,-50%) rotate(${rot}deg) scale(.82)`, `translate(-50%,-50%) rotate(${rot}deg)`);

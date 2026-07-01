@@ -107,6 +107,26 @@ import mudcloth from './mudcloth.js';
 import bubbles from './bubbles.js';
 import shellFan from './shellFan.js';
 import cafeWall from './cafeWall.js';
+import herringbone from './herringbone.js';
+import houndstooth from './houndstooth.js';
+import voronoi from './voronoi.js';
+import penrose from './penrose.js';
+import girih from './girih.js';
+import sierpinski from './sierpinski.js';
+import hilbert from './hilbert.js';
+import impossible from './impossible.js';
+import anamorph from './anamorph.js';
+import tieDye from './tieDye.js';
+import marble from './marble.js';
+import camouflage from './camouflage.js';
+import leopard from './leopard.js';
+import topographic from './topographic.js';
+import guilloche from './guilloche.js';
+import circuitBoard from './circuitBoard.js';
+import subwayMap from './subwayMap.js';
+import bargello from './bargello.js';
+import pixelSprite from './pixelSprite.js';
+import atomic from './atomic.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -137,5 +157,11 @@ export const SYSTEMS = [
   ['Low poly', lowPoly, .5], ['Lattice', lattice, .35], ['Bokeh', bokeh, .3], ['Stipple', stipple, .4],
   ['Gears', gears, .35], ['Radar', radar, .35], ['Blueprint', blueprint, .4], ['Dazzle', dazzle, .5],
   ['Mudcloth', mudcloth, .5], ['Bubbles', bubbles, .35], ['Shell fan', shellFan, .4], ['Café wall', cafeWall, .5],
+  ['Herringbone', herringbone, .5], ['Houndstooth', houndstooth, .45], ['Voronoi', voronoi, .45], ['Penrose', penrose, .4],
+  ['Islamic star', girih, .45], ['Sierpinski', sierpinski, .4], ['Hilbert curve', hilbert, .4], ['Impossible cubes', impossible, .35],
+  ['Bulge grid', anamorph, .45], ['Tie-dye', tieDye, .35], ['Marble', marble, .4], ['Camouflage', camouflage, .4],
+  ['Leopard', leopard, .4], ['Topographic', topographic, .45], ['Guilloché', guilloche, .4], ['Circuit board', circuitBoard, .45],
+  ['Subway map', subwayMap, .4], ['Bargello', bargello, .45], ['Pixel sprite', pixelSprite, .4],
+  ['Atomic', atomic, .4],
 ];
 export default SYSTEMS;

@@ -13,7 +13,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Bunting', 'Big type']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -23,10 +23,12 @@ const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircas
 const COVERERS = new Set([
   'Tessellation', 'Swiss bands', 'Diagonal field', 'Triangle rows', 'Scallop grid', 'Isometric', 'Mondrian', 'Wave grid',
   'Brick wall', 'Truchet', 'Halftone', 'Chevron rows', 'Column stripes', 'Rotating squares', 'Tangram', 'Windmill tiles',
-  'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Checkerboard', 'Warped checker',
+  'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Warped checker',
   'Stained glass', 'Gradient grid', 'Argyle', 'Warp bands', 'Perspective grid', 'Glitch', 'Hex grid', 'Barcode', 'Op waves',
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
+  'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
+  'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski',
 ]);
 function compose(rendererName) {
   const busy = setBg();
@@ -93,14 +95,17 @@ function generateTiles(w, h, count, rendererName) {
   document.body.style.overflow = 'auto';
   document.body.style.background = '#0b0b0b';
   for (let i = 0; i < count; i++) {
+    const a = document.createElement('a');
     const tile = document.createElement('div');
     // `isolation: isolate` gives each tile its own stacking context so setBg's negative z-index
     // background layers stay contained within the tile (full-page mode gets this from #art's
     // transform). Without it those layers escape and only the flat fill shows.
     Object.assign(tile.style, { display: 'inline-block', position: 'relative', overflow: 'hidden', flex: '0 0 auto', isolation: 'isolate' });
-    const name = renderDesign(tile, w, h, rendererName);
+    const name = renderDesign(tile, w, h, rendererName === 'all' ? SYSTEMS[i][0] : rendererName);
     tile.title = `${name} · ${ctx.P.name}`;
-    stage.appendChild(tile);
+    a.append(tile);
+    a.href = `?renderer=${encodeURIComponent(name)}`;
+    stage.appendChild(a);
   }
   ctx.label.textContent = `${count} × ${w}×${h}`;
 }
@@ -144,16 +149,17 @@ export function generate() {
   }
   const rendererName = params.get('renderer');
   const wRaw = params.get('w'), hRaw = params.get('h'), countRaw = params.get('count');
-  const tileMode = wRaw != null || hRaw != null || countRaw != null;
+  const all = params.get('all');
+  const tileMode = wRaw != null || hRaw != null || countRaw != null || all != null;
   if (!tileMode) { generateSingle(rendererName); return; }
   let w = parseInt(wRaw, 10), h = parseInt(hRaw, 10);
   const hasW = Number.isFinite(w), hasH = Number.isFinite(h);
   if (!hasW) w = hasH ? h : 300;
   if (!hasH) h = hasW ? w : 300;
-  let count = parseInt(countRaw, 10);
+  let count = all !== null ? SYSTEMS.length : parseInt(countRaw, 10);
   if (!Number.isFinite(count) || count < 1) count = 1;
   count = Math.min(count, 1000);
-  generateTiles(w, h, count, rendererName);
+  generateTiles(w, h, count, all !== null ? 'all' : rendererName);
 }
 
 // wire UI

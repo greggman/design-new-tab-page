@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Design New Tab Page",
   "description": "Design new tab page  ",
-  "version": "0.0.0.4",
+  "version": "0.0.0.5",
   "chrome_url_overrides" : {
     "newtab": "newpage.html"
   },

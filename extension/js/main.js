@@ -13,7 +13,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Bunting', 'Big type']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Coin stacks']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -28,7 +28,7 @@ const COVERERS = new Set([
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
   'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
-  'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski',
+  'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel',
 ]);
 function compose(rendererName) {
   const busy = setBg();

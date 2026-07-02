@@ -127,6 +127,11 @@ import subwayMap from './subwayMap.js';
 import bargello from './bargello.js';
 import pixelSprite from './pixelSprite.js';
 import atomic from './atomic.js';
+import coinStacks from './coinStacks.js';
+import perspectiveTunnel from './perspectiveTunnel.js';
+import dropShapes from './dropShapes.js';
+import koch from './koch.js';
+import spheres from './spheres.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -162,6 +167,7 @@ export const SYSTEMS = [
   ['Bulge grid', anamorph, .45], ['Tie-dye', tieDye, .35], ['Marble', marble, .4], ['Camouflage', camouflage, .4],
   ['Leopard', leopard, .4], ['Topographic', topographic, .45], ['Guilloché', guilloche, .4], ['Circuit board', circuitBoard, .45],
   ['Subway map', subwayMap, .4], ['Bargello', bargello, .45], ['Pixel sprite', pixelSprite, .4],
-  ['Atomic', atomic, .4],
+  ['Atomic', atomic, .4], ['Coin stacks', coinStacks, .4], ['Tunnel', perspectiveTunnel, .4],
+  ['Drop shapes', dropShapes, .4], ['Koch snowflake', koch, .35], ['Spheres', spheres, .4],
 ];
 export default SYSTEMS;

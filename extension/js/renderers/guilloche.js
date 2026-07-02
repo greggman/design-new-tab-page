@@ -26,7 +26,7 @@ export default function guilloche() {
   ];
   // string art in each corner toward the centre → a woven rosette of envelopes
   corners.forEach((c, i) => {
-    const nxt = corners[(i + 1) % 4];
+    const nxt = corners[(i + 1) % corners.length];
     pencil(c, mid, c, nxt, n, th, mix(cs[i % cs.length], ctx.P.bg, .1));
   });
 }

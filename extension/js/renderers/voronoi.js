@@ -8,7 +8,7 @@ export default function voronoi() {
   const step = ctx.S * rand(.032, .05);
   group({
     //
-  }, '', () => {
+  }, '', '', () => {
     for (let y = step / 2; y < ctx.H + step; y += step) {
       for (let x = step / 2; x < ctx.W + step; x += step) {
         let best = 1e18, bc = cs[0];

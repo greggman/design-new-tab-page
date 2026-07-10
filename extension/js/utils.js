@@ -239,18 +239,39 @@ export function group(style, t0, t1, fn) {
 }
 
 /* ---------- SVG ---------- SVG renderers get true curves/strokes (paths, round caps) that divs can't
-   do well. svgRoot() appends a full-canvas <svg> that scales with #art and fades in like other pieces;
-   node(tag, attrs) adds a child element to it. */
+   do well. svgRoot() appends a full-canvas <svg> that scales with #art; node(tag, attrs) adds a child.
+   Each visual child reveals with its own staggered fade (via the `fin` keyframe, opacity only) so the
+   design cascades in like the div renderers instead of appearing whole. */
 const SVGNS = 'http://www.w3.org/2000/svg';
+const SVG_VIS = { path: 1, circle: 1, ellipse: 1, line: 1, polygon: 1, polyline: 1, rect: 1 };
+const SVG_DRAW = { path: 1, line: 1, polyline: 1, polygon: 1 };   // shapes that support a stroke draw-on
 export function svgRoot() {
   const s = document.createElementNS(SVGNS, 'svg');
   s.setAttribute('viewBox', `0 0 ${ctx.W} ${ctx.H}`);
   s.setAttribute('preserveAspectRatio', 'none');
   Object.assign(s.style, { position: 'absolute', left: '0px', top: '0px', width: ctx.W + 'px', height: ctx.H + 'px', overflow: 'visible' });
-  s.style.setProperty('--t0', 'none'); s.style.setProperty('--t1', 'none'); s.style.setProperty('--op', '1');
-  s.style.animation = `fin .6s ease ${Math.min(ctx.idx * 0.004, 0.35)}s both`;
   ctx.root.appendChild(s); ctx.idx++;
-  s.node = (tag, attrs, parent = s) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  let n = 0;
+  s.node = (tag, attrs, parent = s) => {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    parent.appendChild(e);
+    if (SVG_VIS[tag]) {
+      const delay = Math.min(n++ * .003, .5).toFixed(3);
+      // stroked line art (no fill) draws itself on; everything else fades in — both staggered.
+      const stroked = attrs.stroke && (tag === 'line' || tag === 'polyline' || attrs.fill === 'none') && SVG_DRAW[tag];
+      if (stroked) {
+        e.setAttribute('pathLength', '1');
+        e.style.strokeDasharray = '1 1'; e.style.strokeDashoffset = '1';
+        e.style.animation = `draw .6s ease ${delay}s both`;
+      } else {
+        e.style.setProperty('--t0', 'none'); e.style.setProperty('--t1', 'none');
+        e.style.setProperty('--op', attrs.opacity != null ? String(attrs.opacity) : '1');
+        e.style.animation = `fin .45s cubic-bezier(.2,.7,.25,1) ${delay}s both`;
+      }
+    }
+    return e;
+  };
   return s;
 }
 

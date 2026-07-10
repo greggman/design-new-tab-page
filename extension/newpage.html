@@ -14,6 +14,7 @@
   .piece { position: absolute; }
 
   @keyframes fin { from { opacity: 0; transform: var(--t0); } to { opacity: var(--op,1); transform: var(--t1); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }   /* SVG line art draws itself on */
 
   #ui { position: fixed; top: 14px; right: 14px; z-index: 10000; display: flex; align-items: center; gap: 10px; }
   #label { font-size: 11px; letter-spacing: .05em; color: #fff; mix-blend-mode: difference; opacity: 0; transition: opacity .35s ease; white-space: nowrap; pointer-events: none; }

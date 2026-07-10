@@ -139,6 +139,8 @@ import doodleGrid from './doodleGrid.js';
 import concentricPoly from './concentricPoly.js';
 import blobScribble from './blobScribble.js';
 import arcLoops from './arcLoops.js';
+import geoGrid from './geoGrid.js';
+import constructivist from './constructivist.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -178,6 +180,6 @@ export const SYSTEMS = [
   ['Drop shapes', dropShapes, .4], ['Koch snowflake', koch, .35], ['Spheres', spheres, .4],
   ['Squiggle', squiggle, .4], ['Retro arcs', retroArcs, .45], ['Art deco', artDeco, .45],
   ['Doodle grid', doodleGrid, .45], ['Concentric polygons', concentricPoly, .4], ['Blobs', blobScribble, .4],
-  ['Arc loops', arcLoops, .4],
+  ['Arc loops', arcLoops, .4], ['Geo grid', geoGrid, .5], ['Constructivist', constructivist, .45],
 ];
 export default SYSTEMS;

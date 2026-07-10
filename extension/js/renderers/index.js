@@ -132,6 +132,13 @@ import perspectiveTunnel from './perspectiveTunnel.js';
 import dropShapes from './dropShapes.js';
 import koch from './koch.js';
 import spheres from './spheres.js';
+import squiggle from './squiggle.js';
+import retroArcs from './retroArcs.js';
+import artDeco from './artDeco.js';
+import doodleGrid from './doodleGrid.js';
+import concentricPoly from './concentricPoly.js';
+import blobScribble from './blobScribble.js';
+import arcLoops from './arcLoops.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -169,5 +176,8 @@ export const SYSTEMS = [
   ['Subway map', subwayMap, .4], ['Bargello', bargello, .45], ['Pixel sprite', pixelSprite, .4],
   ['Atomic', atomic, .4], ['Coin stacks', coinStacks, .4], ['Tunnel', perspectiveTunnel, .4],
   ['Drop shapes', dropShapes, .4], ['Koch snowflake', koch, .35], ['Spheres', spheres, .4],
+  ['Squiggle', squiggle, .4], ['Retro arcs', retroArcs, .45], ['Art deco', artDeco, .45],
+  ['Doodle grid', doodleGrid, .45], ['Concentric polygons', concentricPoly, .4], ['Blobs', blobScribble, .4],
+  ['Arc loops', arcLoops, .4],
 ];
 export default SYSTEMS;

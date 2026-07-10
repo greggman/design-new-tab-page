@@ -13,7 +13,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Coin stacks']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Coin stacks', 'Art deco']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -28,7 +28,8 @@ const COVERERS = new Set([
   'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
   'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
-  'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel',
+  'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel', 'Retro arcs', 'Art deco',
+  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops',
 ]);
 function compose(rendererName) {
   const busy = setBg();
@@ -105,6 +106,10 @@ function generateTiles(w, h, count, rendererName) {
     tile.title = `${name} · ${ctx.P.name}`;
     a.append(tile);
     a.href = `?renderer=${encodeURIComponent(name)}`;
+    const desc = document.createElement('div');
+    Object.assign(desc.style, { position: 'absolute', bottom: '0', left: '0', right: '0', font: '10px ui-monospace, Menlo, monospace', letterSpacing: '.04em', color: '#aaa', padding: '4px 6px', background: 'rgba(0,0,0,.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', zIndex: '100' });
+    desc.textContent = `${name} · ${ctx.P.name}`;
+    tile.appendChild(desc);
     stage.appendChild(a);
   }
   ctx.label.textContent = `${count} × ${w}×${h}`;

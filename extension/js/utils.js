@@ -238,6 +238,22 @@ export function group(style, t0, t1, fn) {
   return g;
 }
 
+/* ---------- SVG ---------- SVG renderers get true curves/strokes (paths, round caps) that divs can't
+   do well. svgRoot() appends a full-canvas <svg> that scales with #art and fades in like other pieces;
+   node(tag, attrs) adds a child element to it. */
+const SVGNS = 'http://www.w3.org/2000/svg';
+export function svgRoot() {
+  const s = document.createElementNS(SVGNS, 'svg');
+  s.setAttribute('viewBox', `0 0 ${ctx.W} ${ctx.H}`);
+  s.setAttribute('preserveAspectRatio', 'none');
+  Object.assign(s.style, { position: 'absolute', left: '0px', top: '0px', width: ctx.W + 'px', height: ctx.H + 'px', overflow: 'visible' });
+  s.style.setProperty('--t0', 'none'); s.style.setProperty('--t1', 'none'); s.style.setProperty('--op', '1');
+  s.style.animation = `fin .6s ease ${Math.min(ctx.idx * 0.004, 0.35)}s both`;
+  ctx.root.appendChild(s); ctx.idx++;
+  s.node = (tag, attrs, parent = s) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  return s;
+}
+
 export function box({ x, y, w, h, color, rot = 0, radius = 0, opacity = 1, blend, z = 0, clip, border }) {
   return el({ left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', background: color || 'transparent', borderRadius: typeof radius === 'number' ? radius + 'px' : radius, opacity, mixBlendMode: blend || 'normal', zIndex: z, clipPath: clip || 'none', border: border || 'none' },
     `translate(-50%,-50%) rotate(${rot}deg) scale(.82)`, `translate(-50%,-50%) rotate(${rot}deg)`);

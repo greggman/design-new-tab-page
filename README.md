@@ -38,4 +38,4 @@ or see below how to install manually.
 * Copy this link  `chrome://extensions/` and paste in Chrome
 * Enable Developer Mode and click `Load unpacked extension` button and select the extension folder.
 
-## License: [MIT](LICENSE.md)
+## License: [MIT](LICENSE.md).

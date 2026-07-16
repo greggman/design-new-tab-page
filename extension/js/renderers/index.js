@@ -141,6 +141,11 @@ import blobScribble from './blobScribble.js';
 import arcLoops from './arcLoops.js';
 import geoGrid from './geoGrid.js';
 import constructivist from './constructivist.js';
+import ogee from './ogee.js';
+import molten from './molten.js';
+import groovy from './groovy.js';
+import retroFrames from './retroFrames.js';
+import asterisks from './asterisks.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55], ['Concentric', concentricCircles, .25], ['Concentric squares', concentricSquares, .25],
@@ -180,6 +185,6 @@ export const SYSTEMS = [
   ['Drop shapes', dropShapes, .4], ['Koch snowflake', koch, .35], ['Spheres', spheres, .4],
   ['Squiggle', squiggle, .4], ['Retro arcs', retroArcs, .45], ['Art deco', artDeco, .45],
   ['Doodle grid', doodleGrid, .45], ['Concentric polygons', concentricPoly, .4], ['Blobs', blobScribble, .4],
-  ['Arc loops', arcLoops, .4], ['Geo grid', geoGrid, .5], ['Constructivist', constructivist, .45],
+  ['Arc loops', arcLoops, .4], ['Geo grid', geoGrid, .5], ['Constructivist', constructivist, .45], ['Ogee', ogee, .5], ['Molten', molten, .4], ['Groovy', groovy, .4], ['Retro frames', retroFrames, .5], ['Asterisks', asterisks, .5],
 ];
 export default SYSTEMS;

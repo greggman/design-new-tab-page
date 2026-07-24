@@ -1,0 +1,24 @@
+{
+  "name": "design-new-tab-page",
+  "version": "1.0.0",
+  "description": "A random design new tab page replacement for Google Chrome.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greggman/design-new-tab-page.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/greggman/design-new-tab-page/issues"
+  },
+  "homepage": "https://github.com/greggman/design-new-tab-page#readme",
+  "devDependencies": {
+    "puppeteer": "^25.3.0"
+  }
+}

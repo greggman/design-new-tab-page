@@ -247,6 +247,7 @@ const SVG_VIS = { path: 1, circle: 1, ellipse: 1, line: 1, polygon: 1, polyline:
 const SVG_DRAW = { path: 1, line: 1, polyline: 1, polygon: 1 };   // shapes that support a stroke draw-on
 export function svgRoot() {
   const s = document.createElementNS(SVGNS, 'svg');
+  s.setAttribute('class', 'piece');   // compose() counts .piece to tell whether a renderer drew anything
   s.setAttribute('viewBox', `0 0 ${ctx.W} ${ctx.H}`);
   s.setAttribute('preserveAspectRatio', 'none');
   Object.assign(s.style, { position: 'absolute', left: '0px', top: '0px', width: ctx.W + 'px', height: ctx.H + 'px', overflow: 'visible' });

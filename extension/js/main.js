@@ -80,6 +80,7 @@ function renderDesign(root, w, h, rendererName) {
 function generateSingle(rendererName) {
   ctx.stage.innerHTML = '<div id="art"></div>';
   const name = renderDesign(document.getElementById('art'), innerWidth, innerHeight, rendererName);
+  console.log('RENDERER:', name);                       // machine-readable: tooling counts picks off this
   document.body.style.background = ctx.P.bg;
   ctx.rot = (!NO_ROTATE.has(name) && Math.random() < .22) ? rand(-9, 9) : 0;
   refit();

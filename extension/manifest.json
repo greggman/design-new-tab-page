@@ -2,11 +2,21 @@
   "manifest_version": 3,
   "name": "Design New Tab Page",
   "description": "Design new tab page  ",
-  "version": "0.0.0.8",
+  "version": "0.0.0.9",
+  "type": "module",
   "chrome_url_overrides" : {
     "newtab": "newpage.html"
   },
   "permissions": ["storage"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "design-new-tab@greggman.com",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Design New Tab — choose a color"

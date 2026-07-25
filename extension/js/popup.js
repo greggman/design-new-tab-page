@@ -13,7 +13,7 @@ const status = document.getElementById('status');
 const swatches = document.getElementById('swatches');
 const apply = document.getElementById('apply');
 
-const storage = globalThis.chrome?.storage;
+const storage = globalThis.browser?.storage ?? globalThis.chrome?.storage;   // Firefox: browser.* is promise-based
 const store = storage?.sync ?? storage?.local;   // prefer synced setting, fall back to local
 
 function setInputs(color) {
@@ -24,7 +24,9 @@ function setInputs(color) {
 
 function showMatching(color) {
   status.className = 'matching';
-  status.innerHTML = `New tabs use <b>${color}</b>.`;
+  const b = document.createElement('b');
+  b.textContent = color;
+  status.replaceChildren('New tabs use ', b, '.');
 }
 function showRandom() {
   status.className = '';

@@ -78,8 +78,10 @@ function renderDesign(root, w, h, rendererName) {
 
 // Default: one design filling the whole viewport, scaled/centered on resize and optionally tilted.
 function generateSingle(rendererName) {
-  ctx.stage.innerHTML = '<div id="art"></div>';
-  const name = renderDesign(document.getElementById('art'), innerWidth, innerHeight, rendererName);
+  const art = document.createElement('div');
+  art.id = 'art';
+  ctx.stage.replaceChildren(art);
+  const name = renderDesign(art, innerWidth, innerHeight, rendererName);
   console.log('RENDERER:', name);                       // machine-readable: tooling counts picks off this
   document.body.style.background = ctx.P.bg;
   ctx.rot = (!NO_ROTATE.has(name) && Math.random() < .22) ? rand(-9, 9) : 0;
@@ -92,7 +94,7 @@ function generateSingle(rendererName) {
 function generateTiles(w, h, count, rendererName) {
   ctx.rot = 0;
   const stage = ctx.stage;
-  stage.innerHTML = '';
+  stage.replaceChildren();
   Object.assign(stage.style, { overflow: 'auto', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: '12px', padding: '12px' });
   document.body.style.overflow = 'auto';
   document.body.style.background = '#0b0b0b';
@@ -120,7 +122,7 @@ function generateTiles(w, h, count, rendererName) {
 // can be compared at a glance. Uses the basecolor palette when set, otherwise random palettes.
 function generatePaletteGrid(n) {
   const stage = ctx.stage;
-  stage.innerHTML = '';
+  stage.replaceChildren();
   Object.assign(stage.style, { overflow: 'auto', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: '14px', padding: '16px' });
   document.body.style.overflow = 'auto';
   document.body.style.background = '#444';
@@ -177,7 +179,7 @@ addEventListener('resize', () => { if (refitPending) return; refitPending = requ
 
 // In the extension, load the popup-chosen base color before the first render (unless a URL param
 // already set one), and live-update if the user changes it in the popup while a new tab is open.
-const storage = globalThis.chrome?.storage;
+const storage = globalThis.browser?.storage ?? globalThis.chrome?.storage;   // Firefox: browser.* is promise-based
 const store = storage?.sync ?? storage?.local;   // must match the area the popup writes to
 if (store && !urlBase) {
   try {

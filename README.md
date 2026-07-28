@@ -7,7 +7,7 @@ A random design new tab page replacement for Google Chrome.
 [Gallery](https://greggman.github.io/design-new-tab-page/?count=48&w=420&h=300)
 
 You can install it [from the chrome store](https://chrome.google.com/webstore/detail/design-new-tab-page/bjeoojailkkeekndkklegeiimdbkjock)
-or see below how to install manually.
+or [from the firefox store](https://addons.mozilla.org/addon/design-new-tab-page/) or see below how to install manually.
 
 <img src="./promos/screenshot-00.png">
 <img src="./promos/screenshot-01.png">

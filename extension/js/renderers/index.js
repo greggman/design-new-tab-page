@@ -150,7 +150,9 @@ import geoBlocks from './geoBlocks.js';
 import nestedTiles from './nestedTiles.js';
 import atomicDiamond from './atomicDiamond.js';
 import mobiles from './mobiles.js';
+import arches from './arches.js';
 
+// One per line
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55],
   ['Concentric', concentricCircles, .25],
@@ -304,5 +306,6 @@ export const SYSTEMS = [
   ['Nested tiles', nestedTiles, .5],
   ['Atomic diamond', atomicDiamond, .5],
   ['Mobiles', mobiles, .5],
+  ['Arches', arches, .5],
 ];
 export default SYSTEMS;

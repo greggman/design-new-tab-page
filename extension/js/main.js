@@ -68,6 +68,9 @@ function renderDesign(root, w, h, rendererName) {
   // vanishes if a renderer draws with it. Nudge any near-bg color back toward mid (mixing toward ink, the
   // opposite extreme) — keeps its hue, just guarantees it reads. Everything already contrasty is untouched.
   const bgL = lum(ctx.P.bg), legible = c => Math.abs(lum(c) - bgL) >= .18 ? c : mix(c, ctx.P.ink, .4);
+  // `accent` is pulled in directly by ~150 renderers (usually `[...POOL, accent]`), bypassing the POOL
+  // map above — so nudge it against the ground here too, or it vanishes wherever it lands near bg.
+  ctx.P.accent = legible(ctx.P.accent);
   ctx.POOL = shuffle(ctx.P.colors.map(legible)).slice(0, ri(2, Math.max(2, ctx.P.colors.length)));
   if (ctx.POOL.length < 2) ctx.POOL = [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.ink, .5)];
   ctx.root = root;

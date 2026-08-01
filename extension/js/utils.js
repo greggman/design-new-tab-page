@@ -317,10 +317,14 @@ export function setBg(forceSolid = false) {
   const kind = forceSolid ? 'solid' : wpick([['solid', 4], ['split', 2], ['bands', 2], ['gradient', 2.5], ['quadrants', 1.5]]);
   ctx.root.style.background = chance(0.7) ? ctx.P.bg : mix(ctx.P.bg, pick(ctx.POOL), 0.1);
   if (kind === 'solid') return 0;
-  if (kind === 'split') { const [a, b] = shuffle(ctx.POOL.length > 1 ? ctx.POOL : [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.bg, 0.3)]); const at = ri(35, 65); bgFull({ background: `linear-gradient(${pick(['90deg', '0deg', '45deg', '135deg'])}, ${a} 0 ${at}%, ${b} ${at}% 100%)` }); return 0.25; }
-  if (kind === 'bands') { const horiz = chance(0.5), n = ri(3, 7), cs = shuffle([...ctx.POOL, ctx.POOL[0]]); let p = 0, st = []; times(n, i => { const seg = rand(0.6, 1.6); st.push([p, p + seg, cs[i % cs.length]]); p += seg; }); const css = st.map(([s, e, c]) => `${c} ${(s / p * 100).toFixed(1)}% ${(e / p * 100).toFixed(1)}%`).join(','); bgFull({ background: `linear-gradient(${horiz ? '0deg' : '90deg'}, ${css})` }); return 0.4; }
-  if (kind === 'gradient') { const cs = shuffle(ctx.POOL).slice(0, ri(2, 3)).map(c => mix(c, ctx.P.bg, 0.3)); bgFull({ background: chance(0.5) ? `linear-gradient(${ri(0, 360)}deg, ${cs.join(',')})` : `radial-gradient(circle at ${ri(20, 80)}% ${ri(20, 80)}%, ${cs.join(',')})` }); return 0.2; }
-  const c = ri(2, 3), r = ri(2, 3), cw = ctx.W / c, ch = ctx.H / r, cs = shuffle([...ctx.POOL, ctx.P.accent]); let k = 0; times(r, ry => times(c, cx => box({ x: (cx + 0.5) * cw, y: (ry + 0.5) * ch, w: cw, h: ch, color: cs[(k++) % cs.length], z: -4 }))); return 0.45;
+  // Background treatments are always MUTED toward bg. The foreground renderer draws from the same POOL
+  // colours at full strength, so a full-strength patterned background would swallow thin/sparse marks that
+  // land on a matching band. Mixing every treatment ~halfway to bg keeps it a legible ground, not a rival.
+  const mute = c => mix(c, ctx.P.bg, 0.5);
+  if (kind === 'split') { const [a, b] = shuffle(ctx.POOL.length > 1 ? ctx.POOL : [ctx.POOL[0], ctx.P.ink]).map(mute); const at = ri(35, 65); bgFull({ background: `linear-gradient(${pick(['90deg', '0deg', '45deg', '135deg'])}, ${a} 0 ${at}%, ${b} ${at}% 100%)` }); return 0.25; }
+  if (kind === 'bands') { const horiz = chance(0.5), n = ri(3, 7), cs = shuffle([...ctx.POOL, ctx.POOL[0]]).map(mute); let p = 0, st = []; times(n, i => { const seg = rand(0.6, 1.6); st.push([p, p + seg, cs[i % cs.length]]); p += seg; }); const css = st.map(([s, e, c]) => `${c} ${(s / p * 100).toFixed(1)}% ${(e / p * 100).toFixed(1)}%`).join(','); bgFull({ background: `linear-gradient(${horiz ? '0deg' : '90deg'}, ${css})` }); return 0.4; }
+  if (kind === 'gradient') { const cs = shuffle(ctx.POOL).slice(0, ri(2, 3)).map(c => mix(c, ctx.P.bg, 0.35)); bgFull({ background: chance(0.5) ? `linear-gradient(${ri(0, 360)}deg, ${cs.join(',')})` : `radial-gradient(circle at ${ri(20, 80)}% ${ri(20, 80)}%, ${cs.join(',')})` }); return 0.2; }
+  const c = ri(2, 3), r = ri(2, 3), cw = ctx.W / c, ch = ctx.H / r, cs = shuffle([...ctx.POOL, ctx.P.accent]).map(mute); let k = 0; times(r, ry => times(c, cx => box({ x: (cx + 0.5) * cw, y: (ry + 0.5) * ch, w: cw, h: ch, color: cs[(k++) % cs.length], z: -4 }))); return 0.45;
 }
 
 export function overlay() {

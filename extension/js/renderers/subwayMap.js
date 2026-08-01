@@ -1,8 +1,11 @@
-import { ctx, ri, rand, times, shuffle, pick, line, circle, mix, chance } from '../utils.js';
+import { ctx, ri, rand, times, shuffle, pick, line, circle, mix, lum, chance } from '../utils.js';
 // Subway map: a handful of coloured routes running in straight 45°/90° segments with interchange dots,
 // in the style of a transit diagram.
 export default function subwayMap() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
+  // A thin rail line vanishes completely if its colour matches the ground, so force EVERY route colour to
+  // clearly contrast with bg — nudge any near-bg one hard toward ink (accent included; it skips the pool nudge).
+  const bg = ctx.P.bg, legible = c => Math.abs(lum(c) - lum(bg)) >= .22 ? c : mix(c, ctx.P.ink, .55);
+  const cs = shuffle([...ctx.POOL, ctx.P.accent].map(legible));
   const th = ctx.S * rand(.012, .02), dirs = [0, 45, 90, 135, 180, 225, 270, 315];
   const routes = ri(3, 6);
   times(routes, ri_ => {

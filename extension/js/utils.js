@@ -313,8 +313,8 @@ export function shape(x, y, size, pool, opts = {}) {
 
 /* ---------- backgrounds (clean; no harsh patterns) ---------- */
 export const bgFull = style => el({ left: 0, top: 0, width: ctx.W + 'px', height: ctx.H + 'px', zIndex: -5, ...style }, null, null, false);
-export function setBg() {
-  const kind = wpick([['solid', 4], ['split', 2], ['bands', 2], ['gradient', 2.5], ['quadrants', 1.5]]);
+export function setBg(forceSolid = false) {
+  const kind = forceSolid ? 'solid' : wpick([['solid', 4], ['split', 2], ['bands', 2], ['gradient', 2.5], ['quadrants', 1.5]]);
   ctx.root.style.background = chance(0.7) ? ctx.P.bg : mix(ctx.P.bg, pick(ctx.POOL), 0.1);
   if (kind === 'solid') return 0;
   if (kind === 'split') { const [a, b] = shuffle(ctx.POOL.length > 1 ? ctx.POOL : [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.bg, 0.3)]); const at = ri(35, 65); bgFull({ background: `linear-gradient(${pick(['90deg', '0deg', '45deg', '135deg'])}, ${a} 0 ${at}%, ${b} ${at}% 100%)` }); return 0.25; }

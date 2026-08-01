@@ -32,18 +32,13 @@ const COVERERS = new Set([
   'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks',
 ]);
 function compose(rendererName) {
-  const busy = setBg();
+  // Pick the renderer FIRST, at its true weight — so nothing is gated behind the background roll. Then
+  // choose a background: a coverer fills the canvas edge-to-edge, so it gets a plain fill (a patterned
+  // one would just be hidden); everything else gets a random background treatment to show through its gaps.
+  const forced = (rendererName ?? '').toLowerCase();
+  const sys = (forced && SYSTEMS.find(s => s[0].toLowerCase() === forced)) || wpick(SYSTEMS.map(e => [e, e[2]]));
+  setBg(COVERERS.has(sys[0]));
   const base = ctx.root.querySelectorAll('.piece').length;
-  const pool = busy > 0 ? SYSTEMS.filter(e => !COVERERS.has(e[0])) : SYSTEMS;
-  const p = (rendererName ?? '').toLowerCase();
-  if (p) {
-    const match = SYSTEMS.find(s => s[0].toLowerCase() === p);
-    if (match) {
-      safe(match[1])
-      return match[0];
-    }
-  }
-  const sys = wpick((pool.length ? pool : SYSTEMS).map(e => [e, e[2]]));
   safe(sys[1]);
   if (ctx.root.querySelectorAll('.piece').length <= base) { safe(() => { const fallback = SYSTEMS.find(s => s[0] === 'Concentric'); fallback[1](); }); return 'Fallback'; }
   return sys[0];

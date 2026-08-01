@@ -148,6 +148,7 @@ import retroFrames from './retroFrames.js';
 import asterisks from './asterisks.js';
 import geoBlocks from './geoBlocks.js';
 import nestedTiles from './nestedTiles.js';
+import atomicDiamond from './atomicDiamond.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55],
@@ -297,6 +298,6 @@ export const SYSTEMS = [
   ['Molten', molten, .4],
   ['Groovy', groovy, .4],
   ['Retro frames', retroFrames, .5],
-  ['Asterisks', asterisks, .5], ['Geo blocks', geoBlocks, .5], ['Nested tiles', nestedTiles, .5],
+  ['Asterisks', asterisks, .5], ['Geo blocks', geoBlocks, .5], ['Nested tiles', nestedTiles, .5], ['Atomic diamond', atomicDiamond, .5],
 ];
 export default SYSTEMS;

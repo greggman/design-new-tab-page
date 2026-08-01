@@ -29,7 +29,7 @@ const COVERERS = new Set([
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
   'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
   'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel', 'Retro arcs', 'Art deco',
-  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles',
+  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles', 'Atomic diamond',
 ]);
 function compose(rendererName) {
   // Pick the renderer FIRST, at its true weight — so nothing is gated behind the background roll. Then

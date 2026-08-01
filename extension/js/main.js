@@ -1,4 +1,4 @@
-import { ctx, makePalette, paletteFromBase, normalizeHex, shuffle, mix, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
+import { ctx, makePalette, paletteFromBase, normalizeHex, shuffle, mix, lum, setBg, overlay, rand, ri, wpick, safe } from './utils.js';
 import SYSTEMS from './renderers/index.js';
 
 const params = new URLSearchParams(globalThis.location?.search ?? '');
@@ -63,8 +63,13 @@ function renderDesign(root, w, h, rendererName) {
   ctx.W = w; ctx.H = h; ctx.S = Math.min(w, h); ctx.idx = 0;
   ctx.designW = w; ctx.designH = h;
   ctx.P = baseColor ? paletteFromBase(baseColor) : makePalette();
-  ctx.POOL = shuffle(ctx.P.colors).slice(0, ri(2, Math.max(2, ctx.P.colors.length)));
-  if (ctx.POOL.length < 2) ctx.POOL = [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.bg, .35)];
+  // Shape colors must stay visible on the ground: the palette deliberately contains a color at the same
+  // lightness extreme as bg (the value ramp's cream on a light bg, or its darkest on a dark bg), and it
+  // vanishes if a renderer draws with it. Nudge any near-bg color back toward mid (mixing toward ink, the
+  // opposite extreme) — keeps its hue, just guarantees it reads. Everything already contrasty is untouched.
+  const bgL = lum(ctx.P.bg), legible = c => Math.abs(lum(c) - bgL) >= .18 ? c : mix(c, ctx.P.ink, .4);
+  ctx.POOL = shuffle(ctx.P.colors.map(legible)).slice(0, ri(2, Math.max(2, ctx.P.colors.length)));
+  if (ctx.POOL.length < 2) ctx.POOL = [ctx.POOL[0], mix(ctx.POOL[0], ctx.P.ink, .5)];
   ctx.root = root;
   root.style.width = w + 'px';
   root.style.height = h + 'px';

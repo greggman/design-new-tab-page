@@ -146,6 +146,7 @@ import molten from './molten.js';
 import groovy from './groovy.js';
 import retroFrames from './retroFrames.js';
 import asterisks from './asterisks.js';
+import geoBlocks from './geoBlocks.js';
 
 export const SYSTEMS = [
   ['Modular grid', modularGrid, .55],
@@ -295,6 +296,6 @@ export const SYSTEMS = [
   ['Molten', molten, .4],
   ['Groovy', groovy, .4],
   ['Retro frames', retroFrames, .5],
-  ['Asterisks', asterisks, .5],
+  ['Asterisks', asterisks, .5], ['Geo blocks', geoBlocks, .5],
 ];
 export default SYSTEMS;

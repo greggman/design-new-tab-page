@@ -1,4 +1,4 @@
-import { ctx, ri, rand, times, shuffle, pick, chance, el, box, mix, lum } from '../utils.js';
+import { ctx, ri, rand, times, shuffle, pick, chance, el, box, mix, lum, drawPool } from '../utils.js';
 // Retro frames: a dense scatter of rounded-rectangle frames (somewhere between a rounded rect and an
 // oval), each an outline whose hole is offset — the four border widths differ, so the frame is thicker
 // on some sides than others. Transparent centres let overlapping frames show through. 1960s mod look.
@@ -11,7 +11,7 @@ function frame(cx, cy, w, h, rot, col, base) {
 }
 export default function retroFrames() {
   const bg = lum(ctx.P.bg) >= lum(ctx.P.ink) ? ctx.P.bg : ctx.P.ink;                 // lighter of the two → cream ground
-  const cs = [...new Set(shuffle([...ctx.POOL, ctx.P.accent, ctx.P.ink]))].filter(c => Math.abs(lum(c) - lum(bg)) > .12);
+  const cs = drawPool().filter(c => Math.abs(lum(c) - lum(bg)) > .12);
   if (cs.length < 2) cs.push(mix(bg, '#000000', .5), ctx.P.accent);
   box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -2 });
   times(ri(45, 95), () => {

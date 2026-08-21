@@ -35,6 +35,22 @@ export function contrastPair(colors) {
   return [a, b];
 }
 
+// Draw pool for renderers that would otherwise treat the palette's extremes as ordinary members. P.ink and
+// P.bg sit at the two ends of the value ramp — in practice near-black and near-white — so listing them beside
+// two or three chromatic colours makes a quarter or more of everything drawn black or white. Roll for them
+// ONCE per composition instead: when they're in they're a deliberate part of the scheme, and the rest of the
+// time the design is carried by its actual colours.
+export function drawPool({ ink = .25, bg = .12, extra = [] } = {}) {
+  const cs = [...ctx.POOL, ctx.P.accent, ...extra];
+  if (chance(ink)) cs.push(ctx.P.ink);
+  if (chance(bg)) cs.push(ctx.P.bg);
+  return [...new Set(shuffle(cs))];
+}
+
+// A charcoal for linework that isn't flat black. Pulling ink a little way toward the ground keeps the
+// mid-century pen-line look while lifting it out of the near-black end of the ramp.
+export const softInk = (t = rand(.16, .34)) => mix(ctx.P.ink, ctx.P.bg, t);
+
 export const CURATED = [
   { name: 'BAUHAUS', bg: '#ece6d6', ink: '#1c1a17', colors: ['#d6402c', '#1f4e9b', '#e8b923'], accent: '#d6402c', dark: false },
   { name: 'MID-CENTURY', bg: '#efe7d3', ink: '#2a2620', colors: ['#d98b3a', '#2f7e7e', '#c75b39', '#3c5a4a'], accent: '#c75b39', dark: false },

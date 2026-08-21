@@ -1,11 +1,14 @@
-import { ctx, ri, rand, pick, chance, svgRoot, lum, mix } from '../utils.js';
+import { ctx, ri, rand, pick, chance, svgRoot, lum, mix, drawPool, softInk } from '../utils.js';
 // Atomic diamond: a mid-century scatter of tall motifs on a cream ground — solid ones, outlined ones,
 // and little atomic starbursts (spokes tipped with beads). The motif shape (diamond / oval / lopsided
 // rounded-rect) is chosen once for the whole field. Outlines and spokes draw themselves on. 1950s Eames.
 export default function atomicDiamond() {
   const bg = ctx.P.bg, ink = ctx.P.ink;                               // ground (light OR dark) + its opposite extreme
-  const fills = [...new Set([ctx.P.accent, ...ctx.POOL, ink])].filter(c => Math.abs(lum(c) - lum(bg)) > .14);
+  const fills = drawPool().filter(c => Math.abs(lum(c) - lum(bg)) > .14);
   if (!fills.length) fills.push(ctx.P.accent, ink);
+  // Every starburst is a fistful of spokes and beads, so hard-coding them to ink made them the single
+  // biggest source of flat black in the whole set. Softened charcoal by default, a palette colour sometimes.
+  const spoke = chance(.3) ? pick(fills) : softInk();
   const neutral = mix(ink, bg, .5);                                    // warm-gray outline colour
   const s = svgRoot(), f = v => (+v).toFixed(1);
   s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
@@ -38,10 +41,10 @@ export default function atomicDiamond() {
     for (let i = 0; i < n; i++) {
       const ang = base + i / n * 2 * Math.PI + rand(-.12, .12), rr2 = r * rand(.55, 1);
       const ex = cx + Math.cos(ang) * rr2, ey = cy + Math.sin(ang) * rr2;
-      s.node('line', { x1: f(cx), y1: f(cy), x2: f(ex), y2: f(ey), stroke: ink, 'stroke-width': f(sw), 'stroke-linecap': 'round' });
-      s.node('circle', { cx: f(ex), cy: f(ey), r: f(r * rand(.08, .13)), fill: ink });
+      s.node('line', { x1: f(cx), y1: f(cy), x2: f(ex), y2: f(ey), stroke: spoke, 'stroke-width': f(sw), 'stroke-linecap': 'round' });
+      s.node('circle', { cx: f(ex), cy: f(ey), r: f(r * rand(.08, .13)), fill: spoke });
     }
-    s.node('circle', { cx: f(cx), cy: f(cy), r: f(r * .12), fill: ink });
+    s.node('circle', { cx: f(cx), cy: f(cy), r: f(r * .12), fill: spoke });
   };
   // random scatter (not a grid); count driven by area so the field stays dense
   const spacing = ctx.S * rand(.095, .125), N = Math.round(ctx.W * ctx.H / (spacing * spacing));

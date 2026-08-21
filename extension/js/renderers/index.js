@@ -31,14 +31,12 @@ import sunrise from './sunrise.js';
 import chevronRows from './chevronRows.js';
 import plusField from './plusField.js';
 import bullseyeGrid from './bullseyeGrid.js';
-import staircase from './staircase.js';
 import radialBars from './radialBars.js';
 import moireRings from './moireRings.js';
 import columnStripes from './columnStripes.js';
 import rotatingSquares from './rotatingSquares.js';
 import confetti from './confetti.js';
 import tangram from './tangram.js';
-import barStack from './barStack.js';
 import nestedFrames from './nestedFrames.js';
 import quarterFan from './quarterFan.js';
 import constellation from './constellation.js';
@@ -151,6 +149,9 @@ import nestedTiles from './nestedTiles.js';
 import atomicDiamond from './atomicDiamond.js';
 import mobiles from './mobiles.js';
 import arches from './arches.js';
+import stepRamps from './stepRamps.js';
+import escherSteps from './escherSteps.js';
+import ziggurat from './ziggurat.js';
 
 // One per line
 export const SYSTEMS = [
@@ -187,14 +188,12 @@ export const SYSTEMS = [
   ['Chevron rows', chevronRows, .45],
   ['Plus field', plusField, .5],
   ['Bullseye grid', bullseyeGrid, .45],
-  ['Staircase', staircase, .4],
   ['Radial bars', radialBars, .4],
   ['Moiré rings', moireRings, .3],
   ['Column stripes', columnStripes, .45],
   ['Rotating squares', rotatingSquares, .5],
   ['Confetti', confetti, .3],
   ['Tangram', tangram, .45],
-  ['Bar stack', barStack, .4],
   ['Nested frames', nestedFrames, .3],
   ['Quarter fan', quarterFan, .4],
   ['Constellation', constellation, .25],
@@ -306,6 +305,9 @@ export const SYSTEMS = [
   ['Nested tiles', nestedTiles, .5],
   ['Atomic diamond', atomicDiamond, .5],
   ['Mobiles', mobiles, .5],
+  ['Step ramps', stepRamps, .4],
+  ['Escher steps', escherSteps, .4],
+  ['Ziggurat', ziggurat, .4],
   ['Arches', arches, .5],
 ];
 export default SYSTEMS;

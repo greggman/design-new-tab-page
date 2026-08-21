@@ -3,7 +3,11 @@ import { ctx, ri, rand, pick, chance, box, lum, mix } from '../utils.js';
 // a pill — and a pill always spans two adjacent cells, so its two halves are paired into a full stadium.
 // Two or three solid tones on the palette's darkest tone as the ground. Bauhaus / 1960s.
 export default function geoBlocks() {
-  const cand = [...new Set([ctx.P.ink, ctx.P.bg, ctx.P.accent, ...ctx.POOL])];
+  // The ground is meant to be the palette's dark extreme, so that one stays in. The OPPOSITE extreme is the
+  // problem: listed as an ordinary candidate it becomes a near-white block tone in most designs.
+  const dark = lum(ctx.P.bg) < lum(ctx.P.ink) ? ctx.P.bg : ctx.P.ink;
+  const light = dark === ctx.P.bg ? ctx.P.ink : ctx.P.bg;
+  const cand = [...new Set([dark, ctx.P.accent, ...ctx.POOL, ...(chance(.2) ? [light] : [])])];
   const byLum = [...cand].sort((a, b) => lum(a) - lum(b));
   const bg = byLum[0];                                                  // darkest tone = ground
   let cols = byLum.slice(1).filter(c => lum(c) - lum(bg) > .08);        // shape tones, clearly lighter than ground

@@ -13,7 +13,13 @@ export default function retroArcs() {
   const cs = shuffle([...ctx.POOL, ctx.P.accent]);
   const cols = ri(5, 9), cw = ctx.W / cols, rows = Math.ceil(ctx.H / cw), s = svgRoot();
   const bands = ri(3, 6), sw = cw / bands * rand(.52, .72), off = ri(0, cs.length - 1);  // GLOBAL → tiles match
-  const bandColor = a => cs[(a + off) % cs.length];
+  // Band radii are r(a) = cw*(a-0.5)/bands, so r(a) + r(bands+1-a) = cw exactly. That means an arc of band a
+  // struck from one end of a shared edge ENDS on the same point as an arc of band bands+1-a struck from the
+  // other end — the two tiles' arcs join there. For the colour to carry through the join, the band sequence
+  // has to be a palindrome: abccba over six bands, abcdcba over seven. Pick colours for the first half and
+  // mirror them; without this every seam between opposite-corner tiles changes colour mid-curve.
+  const pal = Array.from({ length: Math.ceil(bands / 2) }, (_, i) => cs[(i + off) % cs.length]);
+  const bandColor = a => pal[Math.min(a - 1, bands - a)];
   const nb = rand(1) >= .5;  // no background
   const bgCol = i => nb ? 'none' : mix(cs[(i % cs.length + cs.length) % cs.length], ctx.P.bg, .12);
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {

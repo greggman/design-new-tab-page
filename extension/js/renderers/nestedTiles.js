@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, chance, shuffle, box, lum } from '../utils.js';
+import { ctx, ri, rand, pick, chance, shuffle, box, lum, mix, wpick } from '../utils.js';
 // Nested tiles: a modular grid of concentric shapes. Each cell holds one motif of 2–4 nested shapes, or
 // splits into a 2×2 of smaller ones. The shape (rounded square / circle / octagon / hexagon) and the ring
 // count are chosen ONCE for the whole composition; each motif's colours vary. Mid-century / 1970s.
@@ -7,8 +7,18 @@ const CLIP = {
   hexagon: 'polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
 };
 export default function nestedTiles() {
-  const bg = lum(ctx.P.bg) >= lum(ctx.P.ink) ? ctx.P.bg : ctx.P.ink;
-  const cols = [...new Set([ctx.P.bg, ctx.P.ink, ctx.P.accent, ...ctx.P.colors])];
+  // The ground is ANY palette colour — paper, ink, or a saturated one; nothing here needs a light ground.
+  // Whatever it lands on, every motif colour is then forced to read against it: anything within .16
+  // luminance of the ground is pushed toward the opposite extreme rather than dropped, so even a small
+  // palette still fills all k rings.
+  const chroma = [...new Set([ctx.P.accent, ...ctx.P.colors])];
+  // The ground can still be any palette colour, but the two extremes are weighted down rather than picked as
+  // equals: they're near-white and near-black, and at equal odds a third of all grounds came out one or other.
+  const bg = wpick([...chroma.map(c => [c, 3]), [ctx.P.bg, 1], [ctx.P.ink, 1]]);
+  const away = lum(bg) >= .5 ? '#000000' : '#ffffff';
+  const pool = [...chroma, ...(chance(.18) ? [ctx.P.ink] : []), ...(chance(.1) ? [ctx.P.bg] : [])];
+  const legible = c => Math.abs(lum(c) - lum(bg)) >= .16 ? c : mix(c, away, .5);
+  const cols = [...new Set(pool.map(legible))];
   box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -1 });
   const shapeType = pick(['rrect', 'circle', 'octagon', 'hexagon']), k = pick([3, 3, 4]), rrad = rand(.24, .34);
   const shape = (x, y, sz, color) => {
@@ -17,11 +27,13 @@ export default function nestedTiles() {
     else box({ x, y, w: sz, h: sz, color, clip: CLIP[shapeType] });
   };
   const motif = (x, y, sz) => {
+    // `cols` already contrasts with the ground, so the outermost ring always reads. What can still blur is
+    // two neighbouring rings landing on the same luminance — pull a contrastier colour forward when so.
     const cs = shuffle(cols);
-    // keep the OUTERMOST ring off the ground colour so the motif's silhouette always reads
-    if (Math.abs(lum(cs[0]) - lum(bg)) <= .12) {
-      const j = cs.findIndex(c => Math.abs(lum(c) - lum(bg)) > .12);
-      if (j > 0) [cs[0], cs[j]] = [cs[j], cs[0]];
+    for (let i = 1; i < k && i < cs.length; i++) {
+      if (Math.abs(lum(cs[i]) - lum(cs[i - 1])) > .1) continue;
+      const j = cs.findIndex((c, n) => n > i && Math.abs(lum(c) - lum(cs[i - 1])) > .1);
+      if (j > i) [cs[i], cs[j]] = [cs[j], cs[i]];
     }
     for (let i = 0; i < k; i++) shape(x, y, sz * (1 - i * (.72 / k)), cs[i % cs.length]);
   };

@@ -1,4 +1,4 @@
-import { ctx, ri, rand, shuffle, pick, chance, svgRoot, mix, lum } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, chance, svgRoot, mix, lum, drawPool } from '../utils.js';
 // Ogee: the mid-century "onion" pattern. An interlocking grid of a repeated cell shape — a pointed oval,
 // a sharp-tipped tear/ogee, a rounded diamond or a rounded hexagon — columns offset by half so they
 // interlock, colours cycling per column, on a light ground that shows through as the wavy negative
@@ -6,7 +6,7 @@ import { ctx, ri, rand, shuffle, pick, chance, svgRoot, mix, lum } from '../util
 // nested shapes. Covers the classic reference variants.
 export default function ogee() {
   const bg = ctx.P.bg;
-  const cs = [...new Set(shuffle([...ctx.POOL, ctx.P.accent, ctx.P.ink]))].filter(c => Math.abs(lum(c) - lum(bg)) > .06);
+  const cs = drawPool().filter(c => Math.abs(lum(c) - lum(bg)) > .06);
   if (cs.length < 2) cs.push(mix(bg, ctx.P.ink, .6), ctx.P.accent);
   const s = svgRoot(), f = v => (+v).toFixed(1);
   if (chance(0.5)) s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
@@ -14,7 +14,9 @@ export default function ogee() {
   const cols = ri(4, 9), sw = ctx.W / cols, sh = sw * rand(1.4, 2.0), hh = sh / 2;
   const hw = sw * (stype === 'diamond' || stype === 'hex' ? .62 : .55);
   const mode = pick(['solid', 'ring', 'ring', 'target', 'target', 'nested', 'dot']);
-  const mp = [...new Set([bg, ...shuffle(cs)])].slice(0, 4);
+  // A TINTED cream rather than the flat ground colour. As a motif ring it reads the same — the onion's
+  // negative-space band — but prepending bg itself guaranteed near-white in every single design.
+  const mp = [...new Set([mix(bg, cs[0], rand(.12, .3)), ...shuffle(cs)])].slice(0, 4);
   const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   const roundPoly = pts => { const n = pts.length, s0 = mid(pts[n - 1], pts[0]); let d = `M ${f(s0[0])} ${f(s0[1])}`; for (let i = 0; i < n; i++) { const m = mid(pts[i], pts[(i + 1) % n]); d += ` Q ${f(pts[i][0])} ${f(pts[i][1])} ${f(m[0])} ${f(m[1])}`; } return d + ' Z'; };
   const path = (cx, cy, W, H) => {

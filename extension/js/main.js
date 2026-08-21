@@ -13,7 +13,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Staircase', 'Bar stack', 'Waveform', 'Coin stacks', 'Art deco', 'Constructivist', 'Ogee', 'Mobiles']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Waveform', 'Ziggurat', 'Escher steps', 'Step ramps', 'Coin stacks', 'Art deco', 'Constructivist', 'Ogee', 'Mobiles']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -25,11 +25,11 @@ const COVERERS = new Set([
   'Brick wall', 'Truchet', 'Halftone', 'Chevron rows', 'Column stripes', 'Rotating squares', 'Tangram', 'Windmill tiles',
   'Seigaiha', 'Color field', 'Plaid', 'Basketweave', 'Terrazzo', 'Mountains', 'Arc tiles', 'Warped checker',
   'Stained glass', 'Gradient grid', 'Argyle', 'Warp bands', 'Perspective grid', 'Glitch', 'Hex grid', 'Barcode', 'Op waves',
-  'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings', 'Staircase',
+  'Hypno rays', 'Plasma', 'Mosaic', 'Dither', 'Quilt', 'Hatch cells', 'Sunrise', 'Shards', 'Ripple', 'Spectrum rings',
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
   'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
   'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel', 'Retro arcs', 'Art deco',
-  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles', 'Atomic diamond', 'Mobiles', 'Arches',
+  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles', 'Atomic diamond', 'Mobiles', 'Arches', 'Step ramps', 'Ziggurat',
 ]);
 function compose(rendererName) {
   // Pick the renderer FIRST, at its true weight — so nothing is gated behind the background roll. Then
@@ -118,6 +118,9 @@ function generateTiles(w, h, count, rendererName) {
     tile.appendChild(desc);
     stage.appendChild(a);
   }
+  // Tile mode has nothing to refit, but ctx.root is still pointing at the LAST tile — leave it set and the
+  // resize handler scales that one tile up to fill the viewport.
+  ctx.root = null;
   ctx.label.textContent = `${count} × ${w}×${h}`;
 }
 

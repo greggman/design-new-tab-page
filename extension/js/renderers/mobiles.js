@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, chance, svgRoot, lum, mix } from '../utils.js';
+import { ctx, ri, rand, pick, chance, svgRoot, lum, mix, drawPool } from '../utils.js';
 // Mobiles: a 1950s atomic "beads on strings" print. Loosely vertical columns of INDEPENDENT motifs —
 // each a lopsided gray oval with a contrasting lopsided inner oval, and its own tapering spike up and one
 // down (attached at random points across the oval). Spikes carry stacks of 0/3/4/5 thin stroked rings;
@@ -10,7 +10,7 @@ export default function mobiles() {
   const bodyCand = [ctx.P.accent, ...ctx.POOL].filter(c => Math.abs(lum(c) - lum(bg)) > .2);
   const body = (chance(.4) || !bodyCand.length) ? mix(ctx.P.ink, bg, rand(.42, .52)) : pick(bodyCand);
   const ringCol = mix(body, ctx.P.ink, .5);                           // darker thin rings
-  const inks = [...new Set([ctx.P.accent, ...ctx.POOL, ctx.P.ink])].filter(c => Math.abs(lum(c) - lum(body)) > .16);
+  const inks = drawPool().filter(c => Math.abs(lum(c) - lum(body)) > .16);
   if (inks.length < 2) inks.push(ctx.P.accent, ctx.P.ink);
   const s = svgRoot(), f = v => (+v).toFixed(1);
   s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });

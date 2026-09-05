@@ -40,6 +40,20 @@ export function contrastPair(colors) {
 // two or three chromatic colours makes a quarter or more of everything drawn black or white. Roll for them
 // ONCE per composition instead: when they're in they're a deliberate part of the scheme, and the rest of the
 // time the design is carried by its actual colours.
+// A smooth SVG path through a list of points. Each point becomes a quadratic CONTROL point and the curve
+// passes through the midpoints between them, so the result is continuous instead of a chain of corners.
+// Sampling a curve and joining the samples with `L` draws a visible polygon — the reason flow field's
+// streamlines and Blobs' spirals both read as vector segments rather than curves.
+export function smoothPath(pts) {
+  const f = v => v.toFixed(1);
+  if (pts.length < 3) return pts.map((q, i) => `${i ? 'L' : 'M'}${f(q[0])} ${f(q[1])}`).join(' ');
+  let d = `M ${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 1; i < pts.length - 1; i++)
+    d += ` Q ${f(pts[i][0])} ${f(pts[i][1])} ${f((pts[i][0] + pts[i + 1][0]) / 2)} ${f((pts[i][1] + pts[i + 1][1]) / 2)}`;
+  const e = pts[pts.length - 1];
+  return d + ` L ${f(e[0])} ${f(e[1])}`;
+}
+
 export function drawPool({ ink = .25, bg = .12, extra = [] } = {}) {
   const cs = [...ctx.POOL, ctx.P.accent, ...extra];
   if (chance(ink)) cs.push(ctx.P.ink);

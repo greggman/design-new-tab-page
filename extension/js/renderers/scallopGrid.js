@@ -1,4 +1,4 @@
-import { ctx, ri, rand, shuffle, pick, chance, box, bgFull, mix, lum } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, chance, bgFull, svgRoot, mix, lum } from '../utils.js';
 // Scallop grid: overlapping rows of solid domes — a clamshell / fish-scale skin. Rows sit half a scale out
 // of phase and are pitched closer together than a scale is tall, then drawn top-to-bottom so every row laps
 // over the one above. That overlap is the whole trick: without it this is just a grid of half-discs with the
@@ -24,13 +24,31 @@ export default function scallopGrid() {
   // A ground behind the scales: the top row laps off-canvas, and a stray seam anywhere reads as a hole.
   // bgFull, not box — a box scales in from .82 with the reveal and would flash the corners bare on the way.
   bgFull({ background: mix(at(-1), ctx.P.bg, .55) });
-  // half-ellipse: horizontal radii 50% of width / vertical radii the full height, so it's a dome not an arch
-  const dome = (x, baseY, dw, dh, color) => box({ x, y: baseY - dh / 2, w: dw, h: dh, color, radius: '50% 50% 0 0 / 100% 100% 0 0' });
+  // One unit half-ellipse in <defs>, instanced per scale and scaled to size. fill=currentColor so each <use>
+  // can recolour it with a plain `color`, which is the only property <use> lets an instance override.
+  const svg = svgRoot(), NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+  const uid = 'sc' + ((Math.random() * 1e9) | 0).toString(36);
+  const defs = mk('defs', {}, svg);
+  mk('path', { id: uid, d: 'M -1 0 A 1 1 0 0 1 1 0 Z', fill: 'currentColor' }, defs);
+  // ONE animated node per row, never per dome. `fin` on every instance is far more expensive than the drawing
+  // — and because it animates transform between var(--t0) and var(--t1), animating a node that carries a
+  // transform ATTRIBUTE lets transform:none override it and snaps every dome to the origin at unit size,
+  // blanking the field. The <use> nodes stay plain geometry; only the row wrapper animates.
+  let rowG = svg;
+  const dome = (x, baseY, dw, dh, color) => {
+    const u = mk('use', { href: `#${uid}`, transform: `translate(${x.toFixed(1)} ${baseY.toFixed(1)}) scale(${(dw / 2).toFixed(2)} ${dh.toFixed(2)})` }, rowG);
+    u.style.color = color;
+    return u;
+  };
   const rows = Math.ceil(ctx.H / pitch) + 2;
   let above = [], left = null;                                // colours of the row above / the scale to the left
   for (let R = 0; R < rows; R++) {
     const baseY = R * pitch, off = (R % 2) ? s / 2 : 0, row = [];
     left = null;
+    rowG = mk('g', {}, svg);
+    rowG.style.setProperty('--t0', 'none'); rowG.style.setProperty('--t1', 'none'); rowG.style.setProperty('--op', '1');
+    rowG.style.animation = `fin .5s ease ${Math.min(R * .03, .45).toFixed(3)}s both`;
     for (let C = -1; C <= cols + 1; C++) {
       const x = C * s + off + s / 2;
       let col;

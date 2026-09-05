@@ -1,4 +1,4 @@
-import { ctx, ri, rand, times, shuffle, pick, chance, box, svgRoot, mix } from '../utils.js';
+import { ctx, ri, rand, times, shuffle, pick, chance, box, svgRoot, smoothPath, mix } from '../utils.js';
 // Blobs + scribbles: scattered organic blobs (smooth closed bézier shapes) on a light ground, some
 // with a concentric inner outline, plus single-line spiral scribbles and little dash clusters. SVG.
 function blob(cx, cy, r, wob, n) {
@@ -21,9 +21,12 @@ export default function blobScribble() {
   });
   times(ri(3, 7), () => {                                  // spiral scribbles
     const cx = rand(.1, .9) * ctx.W, cy = rand(.1, .9) * ctx.H, r = ctx.S * rand(.04, .1), turns = rand(1.5, 3);
-    let d = `M ${cx.toFixed(1)} ${cy.toFixed(1)}`;
-    for (let i = 1; i <= 40; i++) { const t = i / 40, a = t * turns * 2 * Math.PI, rr = r * t; d += ` L ${(cx + Math.cos(a) * rr).toFixed(1)} ${(cy + Math.sin(a) * rr).toFixed(1)}`; }
-    s.node('path', { d, fill: 'none', stroke: ink, 'stroke-width': Math.max(1, ctx.S * .003), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+    // Sample the spiral, then smooth it. Forty straight L segments across up to three turns is barely
+    // thirteen a turn, which draws a polygon; a path costs the same whatever it carries, so sample densely
+    // and curve through the points.
+    const n = Math.max(64, Math.round(turns * 56)), P = [[cx, cy]];
+    for (let i = 1; i <= n; i++) { const t = i / n, a = t * turns * 2 * Math.PI, rr = r * t; P.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr]); }
+    s.node('path', { d: smoothPath(P), fill: 'none', stroke: ink, 'stroke-width': Math.max(1, ctx.S * .003), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   });
   if (chance(.6)) times(ri(1, 3), () => {                  // dash clusters
     const cx = rand(.1, .9) * ctx.W, cy = rand(.1, .9) * ctx.H;

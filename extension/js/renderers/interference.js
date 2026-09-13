@@ -14,8 +14,11 @@ export default function interference() {
   const srcs = Array.from({ length: ri(2, 3) }, () => [rand(.1, .9) * ctx.W, rand(.1, .9) * ctx.H]);
   const svg = svgRoot();
   const f = v => v.toFixed(1);
-  // one circle as a subpath: two half-arcs, so many dots can share a single `d`
-  const dot = (x, y, r) => `M ${f(x - r)} ${f(y)} A ${f(r)} ${f(r)} 0 1 0 ${f(x + r)} ${f(y)} A ${f(r)} ${f(r)} 0 1 0 ${f(x - r)} ${f(y)} Z`;
+  // One circle as a subpath: two half-arcs, so many dots can share a single `d`. Round the centre and radius
+  // ONCE and derive the endpoints from them, so the chord is exactly twice the radius. Rounding x−r, x+r and r
+  // independently lets the radius land a hair over half the chord, and then each "half" arc is more than a
+  // semicircle — dots came out up to 1.2px out of round.
+  const dot = (x, y, r) => { const cx = +f(x), cy = f(y), rr = +f(r); return `M ${(cx - rr).toFixed(1)} ${cy} A ${rr} ${rr} 0 1 0 ${(cx + rr).toFixed(1)} ${cy} A ${rr} ${rr} 0 1 0 ${(cx - rr).toFixed(1)} ${cy} Z`; };
   for (let r = 0; r < rows; r++) {
     let dA = '', dB = '';
     for (let c = 0; c <= cols; c++) {

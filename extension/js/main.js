@@ -13,7 +13,7 @@ ctx.label = document.getElementById('label');
 
 // Designs with a built-in horizon, baseline, or sense of gravity look wrong tilted, so they never
 // rotate. Everything else rotates only occasionally (and gets zoomed in so no edges show).
-const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Waveform', 'Ziggurat', 'Escher steps', 'Step ramps', 'Coin stacks', 'Art deco', 'Constructivist', 'Ogee', 'Mobiles']);
+const NO_ROTATE = new Set(['Perspective grid', 'Sunrise', 'Mountains', 'Waveform', 'Paper layers', 'Botanical', 'Ziggurat', 'Escher steps', 'Step ramps', 'Coin stacks', 'Art deco', 'Constructivist', 'Ogee', 'Mobiles']);
 
 // A composition is one foreground system over a background treatment from setBg(). These systems
 // fill the whole canvas with opaque shapes and would completely hide a patterned background, so when
@@ -29,7 +29,7 @@ const COVERERS = new Set([
   'Low poly', 'Dazzle', 'Mudcloth', 'Café wall',
   'Herringbone', 'Houndstooth', 'Voronoi', 'Penrose', 'Islamic star', 'Camouflage', 'Leopard', 'Topographic',
   'Bargello', 'Marble', 'Tie-dye', 'Bulge grid', 'Circuit board', 'Sierpinski', 'Tunnel', 'Retro arcs', 'Art deco',
-  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles', 'Atomic diamond', 'Mobiles', 'Arches', 'Islamic pattern', 'Step ramps', 'Ziggurat',
+  'Doodle grid', 'Concentric polygons', 'Squiggle', 'Arc loops', 'Geo grid', 'Constructivist', 'Ogee', 'Molten', 'Groovy', 'Retro frames', 'Asterisks', 'Geo blocks', 'Nested tiles', 'Atomic diamond', 'Mobiles', 'Arches', 'Islamic pattern', 'Hitomezashi', 'Celtic knot', 'Greek key', 'Ice-ray lattice', 'Asanoha', 'Kente', 'Cut-outs', 'Riso misprint', 'Paper layers', 'Botanical', 'Chladni', 'Apollonian gasket', 'Dragon curve', 'Step ramps', 'Ziggurat',
 ]);
 function compose(rendererName) {
   // Pick the renderer FIRST, at its true weight — so nothing is gated behind the background roll. Then
@@ -162,6 +162,9 @@ export function generate() {
     return;
   }
   const rendererName = params.get('renderer');
+  if (rendererName) {
+    document.title = rendererName;
+  }
   const wRaw = params.get('w'), hRaw = params.get('h'), countRaw = params.get('count');
   const all = params.get('all');
   const tileMode = wRaw != null || hRaw != null || countRaw != null || all != null;

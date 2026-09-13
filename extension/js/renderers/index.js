@@ -153,6 +153,19 @@ import stepRamps from './stepRamps.js';
 import escherSteps from './escherSteps.js';
 import ziggurat from './ziggurat.js';
 import islamicPattern from './islamicPattern.js';
+import hitomezashi from './hitomezashi.js';
+import celticKnot from './celticKnot.js';
+import meander from './meander.js';
+import iceRay from './iceRay.js';
+import asanoha from './asanoha.js';
+import kente from './kente.js';
+import cutouts from './cutouts.js';
+import risoMisprint from './risoMisprint.js';
+import paperLayers from './paperLayers.js';
+import botanical from './botanical.js';
+import chladni from './chladni.js';
+import apollonian from './apollonian.js';
+import dragonCurve from './dragonCurve.js';
 
 // One per line
 export const SYSTEMS = [
@@ -269,6 +282,19 @@ export const SYSTEMS = [
   ['Penrose', penrose, .4],
   ['Islamic star', girih, .45],
   ['Islamic pattern', islamicPattern, .45],
+  ['Hitomezashi', hitomezashi, .45],
+  ['Celtic knot', celticKnot, .45],
+  ['Greek key', meander, .45],
+  ['Ice-ray lattice', iceRay, .45],
+  ['Asanoha', asanoha, .45],
+  ['Kente', kente, .45],
+  ['Cut-outs', cutouts, .45],
+  ['Riso misprint', risoMisprint, .45],
+  ['Paper layers', paperLayers, .45],
+  ['Botanical', botanical, .45],
+  ['Chladni', chladni, .45],
+  ['Apollonian gasket', apollonian, .45],
+  ['Dragon curve', dragonCurve, .45],
   ['Sierpinski', sierpinski, .4],
   ['Hilbert curve', hilbert, .4],
   ['Impossible cubes', impossible, .35],

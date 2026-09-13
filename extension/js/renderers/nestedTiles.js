@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, chance, shuffle, box, lum, groundScheme } from '../utils.js';
+import { ctx, ri, rand, pick, chance, shuffle, box, lum, groundScheme, grid } from '../utils.js';
 // Nested tiles: a modular grid of concentric shapes. Each cell holds one motif of 2–4 nested shapes, or
 // splits into a 2×2 of smaller ones. The shape (rounded square / circle / octagon / hexagon) and the ring
 // count are chosen ONCE for the whole composition; each motif's colours vary. Mid-century / 1970s.
@@ -29,7 +29,7 @@ export default function nestedTiles() {
     for (let i = 0; i < k; i++) shape(x, y, sz * (1 - i * (.72 / k)), cs[i % cs.length]);
   };
   const nc = ri(3, 5), cell = ctx.W / nc, nr = Math.ceil(ctx.H / cell);
-  for (let r = 0; r < nr; r++) for (let c = 0; c < nc; c++) {
+  grid(nc, nr, (c, r) => {
     const cx = (c + .5) * cell, cy = (r + .5) * cell;
     if (chance(.5)) {                                                    // split into a 2×2 of smaller motifs
       const q = cell / 2;
@@ -37,5 +37,5 @@ export default function nestedTiles() {
     } else {
       motif(cx, cy, cell * .9);
     }
-  }
+  });
 }

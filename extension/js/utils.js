@@ -10,14 +10,22 @@ export const wpick = pairs => { const t = pairs.reduce((s, x) => s + x[1], 0); l
 export const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 export const times = (n, f) => { for (let i = 0; i < n; i++) f(i); };
-// Visit every cell of a cols×rows grid in a random order, as fn(c, r, rank) with rank 0…n−1 in visiting order.
-// Reveal timing follows DOM creation order (el()/box() and svgRoot's node() stagger by how many elements came before),
-// so visiting cells out of order is all it takes to scatter the reveal instead of wiping left-to-right, top-to-bottom;
-// renderers that animate by hand can use `rank`. Two limits: creation order is also PAINT order, so the cells must not
-// overlap; and state carried from one cell to the next (neighbour-aware colouring, parity) must be computed in reading
-// order beforehand, with only the drawing done here.
-export function grid(cols, rows, fn) {
-  shuffle(Array.from({ length: cols * rows }, (_, i) => i)).forEach((i, rank) => fn(i % cols, Math.floor(i / cols), rank));
+// Visit every cell of a cols×rows grid in a random order, as fn(c, r, rank) with rank 0…n−1 in visiting order, so
+// the reveal scatters instead of wiping left-to-right, top-to-bottom. While fn runs, ctx.cellDelay holds this cell's
+// reveal delay (rank/n × dur), and el()/box() and svgRoot's node() use it in place of their own creation-count
+// stagger. That matters for big grids: those counters cap out (0.4s after 67 shapes, 0.5s after 167), so without
+// this a random order would just sprinkle the first few dozen cells and pop the rest in at once. Renderers that
+// animate by hand can use `rank`. Two limits: creation order is also PAINT order, so cells must not overlap; and
+// state carried from one cell to the next (neighbour-aware colouring, a cell claiming its neighbour) must be
+// computed in reading order beforehand, with only the drawing done here.
+export function grid(cols, rows, fn, dur = .8) {
+  const n = cols * rows;
+  try {
+    shuffle(Array.from({ length: n }, (_, i) => i)).forEach((i, rank) => {
+      ctx.cellDelay = rank / n * dur;
+      fn(i % cols, Math.floor(i / cols), rank);
+    });
+  } finally { ctx.cellDelay = undefined; }
 }
 export const safe = fn => { try { fn(); } catch (e) { console.warn('layer skipped:', e); } };
 export const range = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
@@ -314,7 +322,7 @@ export function el(style, t0, t1, anim = true) {
     d.style.setProperty('--t1', t1);
     d.style.setProperty('--op', String(style.opacity ?? 1));
     d.style.transform = t1;
-    d.style.animation = `fin .55s cubic-bezier(.2,.7,.25,1) ${Math.min(ctx.idx * 0.006, 0.4)}s both`;
+    d.style.animation = `fin .55s cubic-bezier(.2,.7,.25,1) ${(ctx.cellDelay ?? Math.min(ctx.idx * 0.006, 0.4)).toFixed(3)}s both`;
   } else if (t1) d.style.transform = t1;
   ctx.root.appendChild(d); ctx.idx++; return d;
 }
@@ -358,7 +366,7 @@ export function svgRoot() {
     for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
     parent.appendChild(e);
     if (SVG_VIS[tag]) {
-      const delay = Math.min(n++ * .003, .5).toFixed(3);
+      const delay = (ctx.cellDelay ?? Math.min(n * .003, .5)).toFixed(3); n++;
       // stroked line art (no fill) draws itself on; everything else fades in — both staggered.
       const stroked = attrs.stroke && (tag === 'line' || tag === 'polyline' || attrs.fill === 'none') && SVG_DRAW[tag];
       if (stroked) {

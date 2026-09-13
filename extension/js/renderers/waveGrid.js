@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, choice, shuffle, chance, clamp, wpick, mix, shape } from '../utils.js';
+import { ctx, ri, rand, pick, choice, shuffle, chance, clamp, wpick, mix, shape, grid } from '../utils.js';
 // Wave grid: a grid of shapes whose rows ride a sine wave. The whole point is that you can SEE the wave, so
 // three things have to hold that a plain jittered grid doesn't: the amplitude is a real multiple of the row
 // pitch (not a fraction of it), every row carries very nearly the same phase so the rows stay parallel
@@ -40,7 +40,8 @@ export default function waveGrid() {
   const ramp = t => { const q = Math.min(Math.max(t, 0), .999) * (cs.length - 1), i = Math.floor(q); return mix(cs[i], cs[i + 1] ?? cs[i], q - i); };
   const k2p = Math.PI * 2 * freq / nu;          // radians of wave per step along u
   // one extra ring of cells all round: the wave lifts the first line off-canvas and drops the last one past it
-  for (let j = -1; j <= nv; j++) for (let i = -1; i <= nu; i++) {
+  grid(nu + 2, nv + 2, (i0, j0) => {
+    const i = i0 - 1, j = j0 - 1;
     const ph = i * k2p + j * lag, val = Math.sin(ph);
     const u = (i + .5) * du, v = (j + .5) * dv + val * amp;
     // d(v)/d(step along u) → the angle the wave is travelling at right here, measured in wave-space
@@ -48,5 +49,5 @@ export default function waveGrid() {
     const col = cpol === 'line' ? at(j) : ramp((val + 1) / 2);
     shape(vert ? v : u, vert ? u : v, base * (1 + val * swell), cs,
       { kind: k, color: col, rot: (bank ? slope : 0) + (vert ? 90 : 0) });
-  }
+  });
 }

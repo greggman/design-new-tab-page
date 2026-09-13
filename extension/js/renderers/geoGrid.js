@@ -1,4 +1,4 @@
-import { ctx, ri, rand, shuffle, pick, chance, choice, box, mix } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, chance, choice, box, mix, grid } from '../utils.js';
 // Geo grid: a grid of geometric motifs (bullseyes, concentric squares/leaves, quarter & three-quarter
 // circles, split circles…), each in ≤3 palette colours. Most tracks are one unit; a few rows/columns
 // are half-size, and the motifs simply squeeze to fit those cells. Bauhaus / mid-century tile look.
@@ -15,7 +15,8 @@ export default function geoGrid() {
   const base = Math.min(ctx.W, ctx.H) / ri(6, 10), hp = rand(.1, .25);
   const cols = tracks(ctx.W, base, hp), rows = tracks(ctx.H, base, hp);
   const leaf = () => pick(['0 50% 0 50%', '50% 0 50% 0']);
-  for (const r of rows) for (const c of cols) {
+  grid(cols.length, rows.length, (ci, rj) => {
+    const c = cols[ci], r = rows[rj];
     const w = c.size, h = r.size, cx = c.pos + w / 2, cy = r.pos + h / 2, pal = shuffle(cs), rot = choice([0, 90, 180, 270]);
     // at 90/270 the box's w/h swap on screen, so pre-swap them to keep the shape inside a non-square cell
     const S = (fw, fh, rad, col, rt = 0) => { const v = rt === 90 || rt === 270; box({ x: cx, y: cy, w: (v ? h * fh : w * fw) + .5, h: (v ? w * fw : h * fh) + .5, color: col, radius: rad, rot: rt }); };
@@ -35,5 +36,5 @@ export default function geoGrid() {
       case 9: { const lr = leaf(); S(1, 1, lr, f1); S(.3, .3, '50%', f2); break; }                                       // leaf + dot
       default: S(1, 1, leaf(), f1); S(.52, .52, '50%', f2); if (chance(.6)) S(.2, .2, '50%', f3);                        // eye
     }
-  }
+  });
 }

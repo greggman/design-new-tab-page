@@ -10,6 +10,15 @@ export const wpick = pairs => { const t = pairs.reduce((s, x) => s + x[1], 0); l
 export const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 export const times = (n, f) => { for (let i = 0; i < n; i++) f(i); };
+// Visit every cell of a cols×rows grid in a random order, as fn(c, r, rank) with rank 0…n−1 in visiting order.
+// Reveal timing follows DOM creation order (el()/box() and svgRoot's node() stagger by how many elements came before),
+// so visiting cells out of order is all it takes to scatter the reveal instead of wiping left-to-right, top-to-bottom;
+// renderers that animate by hand can use `rank`. Two limits: creation order is also PAINT order, so the cells must not
+// overlap; and state carried from one cell to the next (neighbour-aware colouring, parity) must be computed in reading
+// order beforehand, with only the drawing done here.
+export function grid(cols, rows, fn) {
+  shuffle(Array.from({ length: cols * rows }, (_, i) => i)).forEach((i, rank) => fn(i % cols, Math.floor(i / cols), rank));
+}
 export const safe = fn => { try { fn(); } catch (e) { console.warn('layer skipped:', e); } };
 export const range = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 

@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, chance, shuffle, box, lum, mix, wpick } from '../utils.js';
+import { ctx, ri, rand, pick, chance, shuffle, box, lum, groundScheme } from '../utils.js';
 // Nested tiles: a modular grid of concentric shapes. Each cell holds one motif of 2–4 nested shapes, or
 // splits into a 2×2 of smaller ones. The shape (rounded square / circle / octagon / hexagon) and the ring
 // count are chosen ONCE for the whole composition; each motif's colours vary. Mid-century / 1970s.
@@ -7,19 +7,10 @@ const CLIP = {
   hexagon: 'polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)',
 };
 export default function nestedTiles() {
-  // The ground is ANY palette colour — paper, ink, or a saturated one; nothing here needs a light ground.
-  // Whatever it lands on, every motif colour is then forced to read against it: anything within .16
-  // luminance of the ground is pushed toward the opposite extreme rather than dropped, so even a small
-  // palette still fills all k rings.
-  const chroma = [...new Set([ctx.P.accent, ...ctx.P.colors])];
-  // The ground can still be any palette colour, but the two extremes are weighted down rather than picked as
-  // equals: they're near-white and near-black, and at equal odds a third of all grounds came out one or other.
-  const bg = wpick([...chroma.map(c => [c, 3]), [ctx.P.bg, 1], [ctx.P.ink, 1]]);
-  const away = lum(bg) >= .5 ? '#000000' : '#ffffff';
-  const pool = [...chroma, ...(chance(.18) ? [ctx.P.ink] : []), ...(chance(.1) ? [ctx.P.bg] : [])];
-  const legible = c => Math.abs(lum(c) - lum(bg)) >= .16 ? c : mix(c, away, .5);
-  const cols = [...new Set(pool.map(legible))];
-  box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -1 });
+  // Ground: any palette hue at any lightness. Ring colours: the palette's colours made to read against it,
+  // so the outermost ring's silhouette always shows. Picking the ground from the palette's discrete members
+  // (as this used to) still clustered it at the few lightnesses those members happen to sit at.
+  const { fg: cols } = groundScheme();
   const shapeType = pick(['rrect', 'circle', 'octagon', 'hexagon']), k = pick([3, 3, 4]), rrad = rand(.24, .34);
   const shape = (x, y, sz, color) => {
     if (shapeType === 'circle') box({ x, y, w: sz, h: sz, radius: '50%', color });

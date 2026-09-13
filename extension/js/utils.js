@@ -54,16 +54,67 @@ export function smoothPath(pts) {
   return d + ` L ${f(e[0])} ${f(e[1])}`;
 }
 
-export function drawPool({ ink = .25, bg = .12, extra = [] } = {}) {
-  const cs = [...ctx.POOL, ctx.P.accent, ...extra];
-  if (chance(ink)) cs.push(ctx.P.ink);
-  if (chance(bg)) cs.push(ctx.P.bg);
-  return [...new Set(shuffle(cs))];
+/* ---------- grounds that can be any colour ----------
+   P.bg is generated at OKLCH lightness 0.13–0.19 or 0.93–0.97 — near-black or near-white by construction —
+   and P.ink is the opposite end. A renderer that takes either as its ground can only ever produce a light
+   version or a dark version of itself, however the rest of its colours vary. groundScheme() instead picks the
+   ground from the palette's own hues at ANY lightness, then rebuilds the foreground colours so every one of
+   them reads against it. Staying inside the palette's hues is what keeps it within the base colour. */
+
+// OKLab distance between two colours. It counts a lightness difference and a hue/chroma difference together,
+// so contrast can come from either — a mid-grey ground can carry a colour of the same lightness if the hue
+// is different enough, and a muted ground can carry its own hue if the lightness is.
+const _lab = hex => { const [L, C, H] = hexToOklch(hex), h = H * Math.PI / 180; return [L, C * Math.cos(h), C * Math.sin(h)]; };
+export const labDist = (x, y) => { const a = _lab(x), b = _lab(y); return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); };
+
+// Make every colour read against `base`. A colour that's already far enough away is left alone; one that
+// isn't keeps its hue and chroma and has its LIGHTNESS moved away from the base — on its own side first, so
+// the palette's light/dark relationships survive, and across only if there's no room. Near-duplicates that
+// the move creates are dropped.
+export function readable(colors, base, minDist = .2) {
+  const [bL] = hexToOklch(base);
+  const fix = c => {
+    if (labDist(c, base) >= minDist) return c;
+    const [L, C, H] = hexToOklch(c);
+    const toward = dir => {
+      for (let s = .04; s <= 1; s += .03) {
+        const nL = bL + dir * s;
+        if (nL < .04 || nL > .985) return null;
+        const t = oklchToHex(nL, C, H);
+        if (labDist(t, base) < minDist) continue;
+        // A little past the threshold so the moved colours don't all pile up at one lightness — re-checked,
+        // because gamut mapping at the new lightness can pull chroma in and lose some of the distance.
+        const u = oklchToHex(clamp(nL + dir * rand(0, .08), .04, .985), C, H);
+        return labDist(u, base) >= minDist ? u : t;
+      }
+      return null;
+    };
+    const side = L === bL ? (bL < .55 ? 1 : -1) : Math.sign(L - bL);
+    return toward(side) || toward(-side) || (bL < .55 ? '#ffffff' : '#000000');
+  };
+  const out = [];
+  for (const c of colors.map(fix)) if (out.every(o => labDist(o, c) >= .06)) out.push(c);
+  return out;
 }
 
-// A charcoal for linework that isn't flat black. Pulling ink a little way toward the ground keeps the
-// mid-century pen-line look while lifting it out of the near-black end of the ramp.
-export const softInk = (t = rand(.16, .34)) => mix(ctx.P.ink, ctx.P.bg, t);
+// { ground, fg, ink, soft, gL }
+//   ground — one of the palette's hues at a lightness drawn uniformly across the range, chroma anywhere from a
+//            muted tint to the palette colour's own strength. Painted onto ctx.root unless paint:false.
+//   fg     — the palette's chromatic colours made readable against the ground (at least two).
+//   ink    — a line colour. Thin strokes need LIGHTNESS contrast specifically — a hue difference that carries
+//            a filled shape vanishes in a one-pixel line — so this is always far from the ground in lightness.
+//   soft   — ink eased a little toward the ground, for outlines that shouldn't shout.
+export function groundScheme({ minDist = .2, paint = true } = {}) {
+  const src = [...new Set([ctx.P.accent, ...ctx.P.colors])];
+  const [, C0, H] = hexToOklch(pick(src));
+  const gL = rand(.13, .95);
+  const ground = oklchToHex(gL, C0 * rand(.3, 1.1), H);
+  let fg = readable(shuffle(src), ground, minDist);
+  if (fg.length < 2) fg = readable([...fg, oklchToHex(gL < .55 ? rand(.82, .94) : rand(.16, .3), C0 * rand(.3, .9), hexToOklch(pick(src))[2])], ground, minDist);
+  const ink = oklchToHex(gL < .5 ? rand(.86, .96) : rand(.1, .24), C0 * rand(.08, .3), H);
+  if (paint && ctx.root) ctx.root.style.background = ground;
+  return { ground, fg, ink, soft: mix(ink, ground, .3), gL };
+}
 
 export const CURATED = [
   { name: 'BAUHAUS', bg: '#ece6d6', ink: '#1c1a17', colors: ['#d6402c', '#1f4e9b', '#e8b923'], accent: '#d6402c', dark: false },

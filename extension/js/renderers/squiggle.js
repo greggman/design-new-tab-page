@@ -1,4 +1,4 @@
-import { ctx, ri, rand, times, shuffle, pick, box, svgRoot, mix } from '../utils.js';
+import { ctx, ri, rand, times, pick, svgRoot, mix, readable, groundScheme } from '../utils.js';
 // Squiggle: thick, round-capped organic lines that wander and loop across a solid ground — even
 // coverage, freehand feel. A serpentine backbone (points snaking row-by-row) guarantees the coverage;
 // heavy jitter + a Catmull-Rom spline turn it into smooth, varied curves with the odd loop. Not a grid
@@ -15,8 +15,13 @@ function smooth(pts) {
   return d;
 }
 export default function squiggle() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
-  const bg = pick(cs), lc = cs.find(c => c !== bg) || ctx.P.accent;
+  // This used to pick a `bg` and never paint it — it only tinted the second ribbon — so the ground on screen
+  // was always setBg's P.bg, near-white or near-black. The ground is now any palette hue at any lightness,
+  // and the ribbon colour reads against it.
+  const { ground, fg } = groundScheme();
+  const lc = pick(fg);
+  // The second ribbon is a softer echo of the first: eased toward the ground, but not so far it disappears.
+  const echo = readable([mix(lc, ground, .35)], ground, .15)[0];
   const s = svgRoot();
   const style = pick(['loopy', 'sweep', 'wavy']);
   const rows = style === 'sweep' ? ri(2, 3) : style === 'loopy' ? ri(4, 6) : ri(5, 8);
@@ -31,6 +36,6 @@ export default function squiggle() {
         pts.push([col / cols * ctx.W * 1.2 - ctx.W * .1 + rand(-jx, jx) * cw, (r + .5) / rows * ctx.H + rand(-jy, jy) * rh]);
       }
     }
-    s.node('path', { d: smooth(pts), fill: 'none', stroke: rb ? mix(lc, bg, .35) : lc, 'stroke-width': th, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+    s.node('path', { d: smooth(pts), fill: 'none', stroke: rb ? echo : lc, 'stroke-width': th, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
   });
 }

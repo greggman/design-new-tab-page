@@ -1,19 +1,20 @@
-import { ctx, ri, rand, pick, chance, svgRoot, lum, mix, drawPool } from '../utils.js';
+import { ctx, ri, rand, pick, chance, svgRoot, lum, mix, readable, groundScheme } from '../utils.js';
 // Mobiles: a 1950s atomic "beads on strings" print. Loosely vertical columns of INDEPENDENT motifs —
 // each a lopsided gray oval with a contrasting lopsided inner oval, and its own tapering spike up and one
 // down (attached at random points across the oval). Spikes carry stacks of 0/3/4/5 thin stroked rings;
 // bigger inner ovals hold a narrow shell-fan of rays. Motifs just overlap; they aren't linked.
 const K = .5523;
 export default function mobiles() {
-  const bg = ctx.P.bg;
-  // body colour of the ovals + spikes — ONE per composition: sometimes a neutral gray, otherwise a palette tone
-  const bodyCand = [ctx.P.accent, ...ctx.POOL].filter(c => Math.abs(lum(c) - lum(bg)) > .2);
-  const body = (chance(.4) || !bodyCand.length) ? mix(ctx.P.ink, bg, rand(.42, .52)) : pick(bodyCand);
-  const ringCol = mix(body, ctx.P.ink, .5);                           // darker thin rings
-  const inks = drawPool().filter(c => Math.abs(lum(c) - lum(body)) > .16);
-  if (inks.length < 2) inks.push(ctx.P.accent, ctx.P.ink);
+  // Ground: any palette hue at any lightness (it used to be P.bg, so every render was cream or near-black).
+  const { ground, fg, ink } = groundScheme();
+  // Body colour of the ovals + spikes — ONE per composition: sometimes a neutral between ink and the ground,
+  // otherwise a palette tone. It is made to read against the ground; the inner ovals and the rings are then
+  // made to read against the BODY, because that's what they actually sit on.
+  const body = readable([chance(.4) ? mix(ink, ground, rand(.42, .52)) : pick(fg)], ground, .24)[0];
+  const ringCol = readable([mix(body, ink, .5)], body, .15)[0];          // thin rings on the spikes
+  let inks = readable(fg.filter(c => c !== body), body, .2);
+  if (inks.length < 2) inks = readable([...inks, ground, ink], body, .2);
   const s = svgRoot(), f = v => (+v).toFixed(1);
-  s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
   // lopsided OVAL: a real ellipse whose 4 cardinal anchors each slide tangentially (top/bottom sideways,
   // left/right up-down), joined by κ béziers — smooth and oval, just asymmetric.
   const oval = (cx, cy, rx, ry, amp) => {

@@ -1,17 +1,16 @@
-import { ctx, ri, rand, pick, chance, svgRoot, lum, mix, drawPool, softInk } from '../utils.js';
-// Atomic diamond: a mid-century scatter of tall motifs on a cream ground — solid ones, outlined ones,
+import { ctx, ri, rand, pick, chance, svgRoot, mix, hexToOklch, groundScheme } from '../utils.js';
+// Atomic diamond: a mid-century scatter of tall motifs on a ground of any colour — solid ones, outlined ones,
 // and little atomic starbursts (spokes tipped with beads). The motif shape (diamond / oval / lopsided
 // rounded-rect) is chosen once for the whole field. Outlines and spokes draw themselves on. 1950s Eames.
 export default function atomicDiamond() {
-  const bg = ctx.P.bg, ink = ctx.P.ink;                               // ground (light OR dark) + its opposite extreme
-  const fills = drawPool().filter(c => Math.abs(lum(c) - lum(bg)) > .14);
-  if (!fills.length) fills.push(ctx.P.accent, ink);
-  // Every starburst is a fistful of spokes and beads, so hard-coding them to ink made them the single
-  // biggest source of flat black in the whole set. Softened charcoal by default, a palette colour sometimes.
-  const spoke = chance(.3) ? pick(fills) : softInk();
-  const neutral = mix(ink, bg, .5);                                    // warm-gray outline colour
+  // Ground: any palette hue at any lightness (it used to be P.bg, so every render was cream or near-black).
+  const { ground, fg: fills, ink, soft, gL } = groundScheme();
+  // Every starburst is a fistful of spokes and beads. They're thin, so they take ink eased toward the ground,
+  // or a palette colour that clears the ground by LIGHTNESS — hue contrast alone disappears in a stroke.
+  const spokeOpts = fills.filter(c => Math.abs(hexToOklch(c)[0] - gL) > .3);
+  const spoke = spokeOpts.length && chance(.3) ? pick(spokeOpts) : mix(ink, ground, rand(.08, .22));
+  const neutral = soft;                                                 // outline colour
   const s = svgRoot(), f = v => (+v).toFixed(1);
-  s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
   const mode = pick(['diamond', 'oval', 'rrect']);
   // round every corner of a polygon (quadratic fillets), so a jittered quad reads as a soft rounded rect
   const roundedPoly = (pts, r) => {

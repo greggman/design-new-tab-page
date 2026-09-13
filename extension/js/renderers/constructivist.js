@@ -1,12 +1,16 @@
-import { ctx, ri, rand, times, shuffle, pick, chance, svgRoot, lum } from '../utils.js';
-// Constructivist: a vertical-column collage on a dark ground — blocks, pills (rounded-end bars), dot
+import { ctx, ri, rand, times, shuffle, pick, chance, svgRoot, groundScheme } from '../utils.js';
+// Constructivist: a vertical-column collage on a ground of any colour — blocks, pills (rounded-end bars), dot
 // columns, thin/segmented/2-tone lines, and circles (some clipped by a ground rect), mostly running
 // vertically with a few horizontal accents. Bauhaus / mid-century poster. SVG.
 export default function constructivist() {
-  const [bg, light] = lum(ctx.P.bg) < lum(ctx.P.ink) ? [ctx.P.bg, ctx.P.ink] : [ctx.P.ink, ctx.P.bg];
-  const cs = shuffle([light, light, ...ctx.POOL, ctx.P.accent]), col = () => pick(cs);
+  // The ground used to be the palette's dark extreme, but that rect was only drawn a quarter of the time. The
+  // rest of the time the ground on screen was setBg's P.bg — which on a light palette is the very colour that
+  // was weighted DOUBLE in the shape pool as `light`, so a third of the shapes vanished into the ground. Now
+  // the ground is any palette hue at any lightness (painted every time), and `light` becomes a single
+  // high-contrast poster colour chosen against that ground.
+  const { ground: bg, fg, ink: light } = groundScheme();
+  const cs = shuffle([light, ...fg]), col = () => pick(cs);
   const s = svgRoot(), f = v => (+v).toFixed(1);
-  if (chance(0.25)) s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
   const rr = (x, y, w, h, fill, round = 0) => s.node('rect', { x: f(x), y: f(y), width: f(Math.max(1, w)), height: f(Math.max(1, h)), rx: f(round), ry: f(round), fill });
   const cc = (cx, cy, r, fill) => s.node('circle', { cx: f(cx), cy: f(cy), r: f(Math.max(.5, r)), fill });
   const ln = (x1, y1, x2, y2, w, stroke) => s.node('line', { x1: f(x1), y1: f(y1), x2: f(x2), y2: f(y2), stroke, 'stroke-width': f(w), 'stroke-linecap': 'round' });

@@ -1,4 +1,4 @@
-import { ctx, ri, rand, times, shuffle, pick, chance, line, circle, box, mix, lum, softInk } from '../utils.js';
+import { ctx, ri, rand, times, pick, chance, line, circle, mix, hexToOklch, groundScheme } from '../utils.js';
 // Asterisks: a dense all-over field of mid-century "jack" motifs. Each motif is N (2–6) straight lines
 // all crossing one shared centre — every line the SAME dark colour but a different length, and each of
 // its two ends tipped with a differently-coloured little circle. Small loose dots fill the gaps. The
@@ -17,13 +17,13 @@ function jack(cx, cy, R, nLines, lineCol, tips, thick) {
   });
 }
 export default function asterisks() {
-  const bg = lum(ctx.P.bg) >= lum(ctx.P.ink) ? ctx.P.bg : ctx.P.ink;   // cream ground = lighter of the two
-  // Spokes are most of the shapes on the canvas, so pure ink here dominates the whole design. Softened
-  // charcoal keeps the pen-line look without the field reading as black.
-  const lineCol = chance(.25) ? pick([...ctx.POOL, ctx.P.accent]) : softInk(rand(.2, .38));
-  const tips = shuffle([...ctx.POOL, ctx.P.accent]).filter(c => Math.abs(lum(c) - lum(bg)) > .12);
-  if (tips.length < 2) tips.push(ctx.P.accent, mix(ctx.P.accent, '#000000', .35));
-  if (chance(0.75)) box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -1 });
+  // Ground: any palette hue at any lightness (it used to be "the lighter of bg and ink" — always cream).
+  const { ground, fg: tips, ink, gL } = groundScheme();
+  // Spokes are thin lines and most of the shapes on the canvas, so they need LIGHTNESS contrast, not just a
+  // different hue: ink eased slightly toward the ground, or now and then a palette colour that clears the
+  // ground by lightness on its own.
+  const lineOpts = tips.filter(c => Math.abs(hexToOklch(c)[0] - gL) > .3);
+  const lineCol = lineOpts.length && chance(.25) ? pick(lineOpts) : mix(ink, ground, rand(.08, .22));
   const cell = ctx.S * rand(.15, .22), thick = Math.max(1.5, cell * .034);
   const cols = Math.ceil(ctx.W / cell) + 1, rows = Math.ceil(ctx.H / cell) + 1;
   times(rows, r => times(cols, c => {

@@ -1,15 +1,14 @@
-import { ctx, ri, rand, shuffle, pick, chance, svgRoot, mix, lum, drawPool } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, chance, svgRoot, mix, groundScheme } from '../utils.js';
 // Ogee: the mid-century "onion" pattern. An interlocking grid of a repeated cell shape — a pointed oval,
 // a sharp-tipped tear/ogee, a rounded diamond or a rounded hexagon — columns offset by half so they
-// interlock, colours cycling per column, on a light ground that shows through as the wavy negative
+// interlock, colours cycling per column, on a ground that shows through as the wavy negative
 // space. One motif per render fills every cell: plain, nested outline + dot, concentric bullseye, or
 // nested shapes. Covers the classic reference variants.
 export default function ogee() {
-  const bg = ctx.P.bg;
-  const cs = drawPool().filter(c => Math.abs(lum(c) - lum(bg)) > .06);
-  if (cs.length < 2) cs.push(mix(bg, ctx.P.ink, .6), ctx.P.accent);
+  // The ground is any palette hue at any lightness, and the cell colours are made to read against it — see
+  // groundScheme(). Taking P.bg here meant every ogee was either a light design or a dark one.
+  const { ground: bg, fg: cs } = groundScheme();
   const s = svgRoot(), f = v => (+v).toFixed(1);
-  if (chance(0.5)) s.node('rect', { x: 0, y: 0, width: ctx.W, height: ctx.H, fill: bg });
   const stype = pick(['oval', 'oval', 'tear', 'diamond', 'hex']);
   const cols = ri(4, 9), sw = ctx.W / cols, sh = sw * rand(1.4, 2.0), hh = sh / 2;
   const hw = sw * (stype === 'diamond' || stype === 'hex' ? .62 : .55);

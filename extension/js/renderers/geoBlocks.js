@@ -1,18 +1,11 @@
-import { ctx, ri, rand, pick, chance, box, lum, mix } from '../utils.js';
+import { ctx, ri, pick, chance, box, groundScheme } from '../utils.js';
 // Geo blocks: a mid-century modular grid. Each cell holds a square, a circle, a quarter-disc, or half of
 // a pill — and a pill always spans two adjacent cells, so its two halves are paired into a full stadium.
-// Two or three solid tones on the palette's darkest tone as the ground. Bauhaus / 1960s.
+// Solid palette tones on a ground that can be any colour. Bauhaus / 1960s.
 export default function geoBlocks() {
-  // The ground is meant to be the palette's dark extreme, so that one stays in. The OPPOSITE extreme is the
-  // problem: listed as an ordinary candidate it becomes a near-white block tone in most designs.
-  const dark = lum(ctx.P.bg) < lum(ctx.P.ink) ? ctx.P.bg : ctx.P.ink;
-  const light = dark === ctx.P.bg ? ctx.P.ink : ctx.P.bg;
-  const cand = [...new Set([dark, ctx.P.accent, ...ctx.POOL, ...(chance(.2) ? [light] : [])])];
-  const byLum = [...cand].sort((a, b) => lum(a) - lum(b));
-  const bg = byLum[0];                                                  // darkest tone = ground
-  let cols = byLum.slice(1).filter(c => lum(c) - lum(bg) > .08);        // shape tones, clearly lighter than ground
-  if (cols.length < 2) cols = [ctx.P.accent, mix(ctx.P.accent, '#ffffff', .3)];
-  box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -1 });
+  // The ground is any palette hue at any lightness and the block tones are made to read against it. This
+  // used to take the palette's darkest tone as the ground, so every Geo blocks was a dark design.
+  const cols = groundScheme().fg;
   const nc = ri(8, 12), cell = ctx.W / nc, nr = Math.ceil(ctx.H / cell);
   const used = Array.from({ length: nr }, () => new Array(nc).fill(false));
   const corners = ['100% 0 0 0', '0 100% 0 0', '0 0 100% 0', '0 0 0 100%'];   // which corner is the quarter-disc arc

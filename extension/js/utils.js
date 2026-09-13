@@ -333,6 +333,16 @@ export function svgRoot() {
   s.setAttribute('preserveAspectRatio', 'none');
   Object.assign(s.style, { position: 'absolute', left: '0px', top: '0px', width: ctx.W + 'px', height: ctx.H + 'px', overflow: 'visible' });
   ctx.root.appendChild(s); ctx.idx++;
+  // A dashed stroke never JOINS where its dash begins and ends: the closing vertex of a polygon or closed path
+  // is drawn as two butt ends — a V-notch at the corner the outline started from — instead of a mitred corner.
+  // The dash exists only to animate the draw-on below, so strip it once that animation has finished and the
+  // shape closes properly. One delegated listener on the root rather than one per shape.
+  s.addEventListener('animationend', ev => {
+    if (ev.animationName !== 'draw') return;
+    const t = ev.target;
+    t.style.animation = ''; t.style.strokeDasharray = ''; t.style.strokeDashoffset = '';
+    t.removeAttribute('pathLength');
+  });
   let n = 0;
   s.node = (tag, attrs, parent = s) => {
     const e = document.createElementNS(SVGNS, tag);

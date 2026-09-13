@@ -1,4 +1,4 @@
-import { ctx, ri, rand, shuffle, pick, chance, clamp, wpick, box, svgRoot, mix } from '../utils.js';
+import { ctx, ri, rand, pick, chance, clamp, wpick, svgRoot, mix, readable, groundScheme } from '../utils.js';
 // Art Deco palmettes: columns of leaf/shield motifs with a fan of veins (1920s wallpaper, ref image
 // #1). Heavily parameterised so each render differs: leaf proportions, up / down / alternating
 // orientation (the palmette flip), vein style & count, colour mode, column stagger and density.
@@ -23,7 +23,10 @@ function veins(s, cx, tipY, baseY, w, style, n, col, vw, p) {
   }
 }
 export default function artDeco() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
+  // Ground: any palette hue at any lightness. It used to be P.bg nudged a few percent toward ink, so every
+  // Art Deco was either a light design or a dark one. Leaf colours come back readable against it.
+  const { ground, fg: cs, ink } = groundScheme();
+  const onGround = c => readable([c], ground)[0];
   // Size the motif off the SHORT side and derive the column count from it. A raw ri(3,8) ignores both the
   // canvas size and its aspect: at cols=3 on a landscape window each leaf came out 480x720px and the whole
   // design was FOUR motifs, while cols=8 in portrait gave 74. Same parameter, wildly different density.
@@ -38,30 +41,37 @@ export default function artDeco() {
   const veinStyle = wpick([['curved', 3], ['straight', 2], ['nested', 3], ['core', 3], ['none', 1]]);
   const nv = clamp(Math.round(cw / 38), 1, 4);        // fewer veins on a small leaf, or it turns to mush
   const colorMode = pick(['col', 'col', 'random', 'grad', 'mirror']);
-  box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: mix(ctx.P.bg, ctx.P.ink, rand(.03, .14)), z: -2 });
-  const bead = chance(.45), beadCol = mix(ctx.P.accent, ctx.P.bg, .1);
-  const s = svgRoot(), vein = chance(.7) ? mix(ctx.P.ink, ctx.P.bg, .1) : mix(ctx.P.bg, ctx.P.ink, .04), vw = Math.max(1, cw * rand(.005, .01));
-  const colorFor = (c, y, mi) => colorMode === 'col' ? cs[c % cs.length]
+  const accent = onGround(ctx.P.accent);
+  const bead = chance(.45), beadCol = onGround(mix(ctx.P.accent, ground, .1));   // beads sit in the channels, on the ground
+  // Veins and nested outlines take one colour per render — dark ink or a paper tone — but they sit on the
+  // LEAVES, not the ground, and the leaves now land anywhere in lightness. So that colour is re-checked
+  // against each leaf it's drawn on; it keeps its hue and only its lightness moves where a leaf is too close.
+  const veinBase = chance(.7) ? mix(ink, ground, .1) : mix(ground, ink, .04), veinOn = leaf => readable([veinBase], leaf, .22)[0];
+  const s = svgRoot(), vw = Math.max(1, cw * rand(.005, .01));
+  // Every mode is passed through onGround: `grad` interpolates between two palette colours, and if one sits
+  // lighter than the ground and the other darker, the leaves halfway down pass straight through the ground.
+  const colorFor = (c, y) => onGround(colorMode === 'col' ? cs[c % cs.length]
     : colorMode === 'mirror' ? cs[Math.min(c, cols - 1 - c) % cs.length]
       : colorMode === 'grad' ? mix(cs[0], cs[cs.length - 1], y / ctx.H)
-        : chance(.14) ? ctx.P.accent : pick(cs);
+        : chance(.14) ? accent : pick(cs));
   for (let c = 0; c < cols; c++) {
     const cx = (c + .5) * cw, start = -leafH - (c % 2 ? leafH * stagger : 0);
     let mi = 0;
     for (let y = start; y < ctx.H + leafH; y += leafH * overlap, mi++) {
       const up = orient === 'up' ? true : orient === 'down' ? false : mi % 2 === 0;
-      const tipY = up ? y : y + leafH, baseY = up ? y + leafH : y, col = colorFor(c, y, mi);
+      const tipY = up ? y : y + leafH, baseY = up ? y + leafH : y, col = colorFor(c, y);
       const w = cw * lwf;
-      s.node('path', { d: ogee(cx, tipY, baseY, w, p), fill: col, stroke: mix(col, ctx.P.ink, .18), 'stroke-width': vw });
+      s.node('path', { d: ogee(cx, tipY, baseY, w, p), fill: col, stroke: mix(col, ink, .18), 'stroke-width': vw });
       // A smaller leaf concentric with this one, at scale t.
       const inner = t => { const h = baseY - tipY, ih = h * t, it = tipY + (h - ih) / 2; return ogee(cx, it, it + ih, w * t, p); };
-      if (veinStyle === 'nested') for (let i = 1, rn = ri(2, 3); i <= rn; i++)
-        s.node('path', { d: inner(1 - i * (.74 / rn)), fill: 'none', stroke: vein, 'stroke-width': vw * 1.1 });
+      if (veinStyle === 'nested') for (let i = 1, rn = ri(2, 3), vc = veinOn(col); i <= rn; i++)
+        s.node('path', { d: inner(1 - i * (.74 / rn)), fill: 'none', stroke: vc, 'stroke-width': vw * 1.1 });
       else if (veinStyle === 'core') {
-        const t1 = rand(.5, .68), core = mix(cs[(c + 2) % cs.length], col, .15);
-        s.node('path', { d: inner(t1), fill: core, stroke: mix(core, ctx.P.ink, .2), 'stroke-width': vw * .8 });
-        if (chance(.55)) s.node('path', { d: inner(t1 * .45), fill: mix(col, ctx.P.bg, .25) });
-      } else if (veinStyle !== 'none') veins(s, cx, tipY, baseY, w, veinStyle, nv, vein, vw, p);
+        // the core sits on the leaf, so it has to read against the leaf — same colour and 'core' is just 'none'
+        const t1 = rand(.5, .68), core = readable([mix(cs[(c + 2) % cs.length], col, .15)], col, .15)[0];
+        s.node('path', { d: inner(t1), fill: core, stroke: mix(core, ink, .2), 'stroke-width': vw * .8 });
+        if (chance(.55)) s.node('path', { d: inner(t1 * .45), fill: mix(col, ground, .25) });
+      } else if (veinStyle !== 'none') veins(s, cx, tipY, baseY, w, veinStyle, nv, veinOn(col), vw, p);
       // Bead in the channel between columns — the small linking ornament Deco borders always carry.
       if (bead && c < cols - 1) {
         const bx = (c + 1) * cw, by = up ? baseY : tipY, r = cw * .07;

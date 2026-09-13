@@ -11,9 +11,25 @@ function tex(n, kind, x, y, w, h, ink, sw) {
   if (kind === 'grid') { const gx = ri(3, 6), gy = ri(3, 6); for (let i = 1; i < gx; i++) n('line', { x1: X + i / gx * W + j(), y1: Y, x2: X + i / gx * W + j(), y2: Y + H, stroke: ink, 'stroke-width': sw }); for (let i = 1; i < gy; i++) n('line', { x1: X, y1: Y + i / gy * H + j(), x2: X + W, y2: Y + i / gy * H + j(), stroke: ink, 'stroke-width': sw }); return; }
   if (kind === 'loops') { times(ri(4, 9), () => { const cx = X + rand(0, W), cy = Y + rand(0, H), rr = Math.min(W, H) * rand(.06, .14); n('ellipse', { cx, cy, rx: rr, ry: rr * rand(.6, 1), fill: 'none', stroke: ink, 'stroke-width': sw, transform: `rotate(${ri(0, 180)} ${cx.toFixed(1)} ${cy.toFixed(1)})` }); }); return; }
   if (kind === 'rings') { const rings = ri(2, 4); for (let i = 1; i <= rings; i++) n('circle', { cx: X + W / 2, cy: Y + H / 2, r: Math.min(W, H) / 2 * i / rings, fill: 'none', stroke: ink, 'stroke-width': sw }); return; }
-  // squiggle
-  let xx = X + rand(0, W), yy = Y + rand(0, H), ang = rand(0, 6.28), d = `M ${xx.toFixed(1)} ${yy.toFixed(1)}`;
-  times(ri(6, 12), () => { const len = Math.min(W, H) * rand(.15, .35); if (xx < X) ang = 0; else if (xx > X + W) ang = Math.PI; if (yy < Y) ang = 1.57; else if (yy > Y + H) ang = -1.57; ang += rand(-1, 1); const nx = xx + Math.cos(ang) * len, ny = yy + Math.sin(ang) * len, cx = xx + Math.cos(ang - .3) * len * .5, cy = yy + Math.sin(ang) * len * .5; d += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${nx.toFixed(1)} ${ny.toFixed(1)}`; xx = nx; yy = ny; });
+  // squiggle — a random walk that can't leave its patch.
+  // A quadratic bézier always lies inside the triangle of its three points, and the patch's inner box is
+  // convex, so a step whose control AND end point both land in the box keeps the whole curve in it. Steps that
+  // wouldn't are re-rolled with a widening turn. The old walk only steered back AFTER a point was already
+  // outside, with steps (up to 35% of the box) longer than the margin (14%), so one overshoot crossed into the
+  // neighbouring cell; and in a corner its vertical correction overwrote the horizontal one.
+  const inside = (px, py) => px >= X && px <= X + W && py >= Y && py <= Y + H;
+  let xx = X + rand(.2, .8) * W, yy = Y + rand(.2, .8) * H, ang = rand(0, 6.28), d = `M ${xx.toFixed(1)} ${yy.toFixed(1)}`;
+  const step = (cx, cy, nx, ny) => { d += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${nx.toFixed(1)} ${ny.toFixed(1)}`; xx = nx; yy = ny; };
+  times(ri(6, 12), () => {
+    for (let t = 0; t < 24; t++) {
+      const len = Math.min(W, H) * rand(.15, .35), a = ang + rand(-1, 1) * (1 + t * .2);
+      const nx = xx + Math.cos(a) * len, ny = yy + Math.sin(a) * len, cx = xx + Math.cos(a - .3) * len * .5, cy = yy + Math.sin(a) * len * .5;
+      if (inside(nx, ny) && inside(cx, cy)) { ang = a; step(cx, cy, nx, ny); return; }
+    }
+    // Boxed in: head for the centre. Every point on that segment is inside the box, midpoint included.
+    const mx = X + W / 2, my = Y + H / 2, nx = xx + (mx - xx) * .6, ny = yy + (my - yy) * .6;
+    ang = Math.atan2(my - yy, mx - xx); step((xx + nx) / 2, (yy + ny) / 2, nx, ny);
+  });
   n('path', { d, fill: 'none', stroke: ink, 'stroke-width': sw, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
 }
 export default function doodleGrid() {
@@ -25,7 +41,12 @@ export default function doodleGrid() {
     const x0 = c * cw, y0 = r * ch;
     const bg = chance(.5) ? paper : chance(.6) ? pick(cs) : inkD;
     s.node('rect', { x: x0, y: y0, width: cw + 1, height: ch + 1, fill: bg });
-    const ink = lum(bg) > .5 ? inkD : mix('#ffffff', bg, .15);
+    // Dark ink on a light cell, light ink on a dark one — where "dark ink" really is dark. inkD is only dark on a
+    // light palette: on a dark palette P.ink is the LIGHT extreme, and since inkD is also used as a cell fill,
+    // the old `lum(bg) > .5 ? inkD : white` put light inkD texture on light inkD cells. Same colour — a blank
+    // cell, about one in thirteen overall.
+    const dark = lum(ctx.P.ink) < lum(ctx.P.bg) ? inkD : mix(ctx.P.bg, ctx.P.ink, .05);
+    const ink = lum(bg) > .5 ? dark : mix('#ffffff', bg, .15);
     tex(s.node, pick(kinds), x0, y0, cw, ch, ink, Math.min(cw, ch) * rand(.022, .045));
   }
 }

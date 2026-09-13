@@ -152,6 +152,7 @@ import arches from './arches.js';
 import stepRamps from './stepRamps.js';
 import escherSteps from './escherSteps.js';
 import ziggurat from './ziggurat.js';
+import islamicPattern from './islamicPattern.js';
 
 // One per line
 export const SYSTEMS = [
@@ -267,6 +268,7 @@ export const SYSTEMS = [
   ['Voronoi', voronoi, .45],
   ['Penrose', penrose, .4],
   ['Islamic star', girih, .45],
+  ['Islamic pattern', islamicPattern, .45],
   ['Sierpinski', sierpinski, .4],
   ['Hilbert curve', hilbert, .4],
   ['Impossible cubes', impossible, .35],

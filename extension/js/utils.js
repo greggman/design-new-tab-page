@@ -10,21 +10,57 @@ export const wpick = pairs => { const t = pairs.reduce((s, x) => s + x[1], 0); l
 export const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 export const times = (n, f) => { for (let i = 0; i < n; i++) f(i); };
-// Visit every cell of a cols×rows grid in a random order, as fn(c, r, rank) with rank 0…n−1 in visiting order, so
-// the reveal scatters instead of wiping left-to-right, top-to-bottom. While fn runs, ctx.cellDelay holds this cell's
-// reveal delay (rank/n × dur), and el()/box() and svgRoot's node() use it in place of their own creation-count
-// stagger. That matters for big grids: those counters cap out (0.4s after 67 shapes, 0.5s after 167), so without
-// this a random order would just sprinkle the first few dozen cells and pop the rest in at once. Renderers that
-// animate by hand can use `rank`. Two limits: creation order is also PAINT order, so cells must not overlap; and
-// state carried from one cell to the next (neighbour-aware colouring, a cell claiming its neighbour) must be
-// computed in reading order beforehand, with only the drawing done here.
-export function grid(cols, rows, fn, dur = .8) {
-  const n = cols * rows;
+// Reveal orders for grid(). Each maps a cell's centre to a key, and cells reveal in increasing key. X, Y are the
+// centre's offset from the middle of the canvas in pixels (W, H the canvas size), so rings and quadrant bursts come
+// out round rather than stretched to the grid's aspect. "H" orders sweep along x — whole columns move toward or away
+// from the vertical centre line; "V" orders do the same row by row.
+const Q = (X, Y, W, H) => Math.hypot(Math.abs(X) - W / 4, Math.abs(Y) - H / 4);   // distance to the nearest quadrant centre
+export const GRID_ORDERS = {
+  random: () => Math.random(),
+  edgesInH: (X, Y, W) => W / 2 - Math.abs(X),
+  edgesInV: (X, Y, W, H) => H / 2 - Math.abs(Y),
+  centreOutH: (X) => Math.abs(X),
+  centreOutV: (X, Y) => Math.abs(Y),
+  radialOut: (X, Y) => Math.hypot(X, Y),
+  radialIn: (X, Y) => -Math.hypot(X, Y),
+  // edges and centre start together and meet halfway between — at the quarter lines, or the mid-ring
+  bothH: (X, Y, W) => Math.min(Math.abs(X), W / 2 - Math.abs(X)),
+  bothV: (X, Y, W, H) => Math.min(Math.abs(Y), H / 2 - Math.abs(Y)),
+  bothRadial: (X, Y, W, H) => { const d = Math.hypot(X, Y); return Math.min(d, Math.hypot(W / 2, H / 2) - d); },
+  // four bursts, one per quadrant: out from each quadrant's centre, or in to it
+  quadrantsOut: Q,
+  quadrantsIn: (X, Y, W, H) => -Q(X, Y, W, H),
+};
+const GRID_ORDER_WEIGHTS = Object.keys(GRID_ORDERS).map(k => [k, k === 'random' ? 3 : 1]);
+
+// Visit every cell of a cols×rows grid in reveal order, as fn(c, r, rank, t): rank 0…n−1 in visiting order, t 0…1 the
+// cell's reveal time. The order is picked at random per call from GRID_ORDERS (random scatter; edges→centre,
+// centre→edges or both at once, along either axis or radially; bursts out of or into each quadrant) unless `order`
+// names one. While fn runs, ctx.cellDelay holds
+// t × dur, and el()/box() and svgRoot's node() use it in place of their own creation-count stagger — needed because
+// those counters cap out (0.4s after 67 shapes, 0.5s after 167), so a big grid would otherwise sprinkle its first few
+// dozen cells and pop the rest in at once. Renderers that animate by hand can use `t`.
+//
+// Timing follows the key, not the rank, so a radial reveal grows at a steady speed rather than slowing as the rings
+// get longer. A little jitter is mixed in so a column or ring doesn't land as one hard-edged block.
+//
+// Two limits: creation order is also PAINT order, so cells must not overlap; and state carried from one cell to the
+// next (neighbour-aware colouring, a cell claiming its neighbour) must be computed in reading order beforehand, with
+// only the drawing done here.
+export function grid(cols, rows, fn, { dur = .8, order = wpick(GRID_ORDER_WEIGHTS), jitter = .12 } = {}) {
+  const key = GRID_ORDERS[order], W = ctx.W || 1, H = ctx.H || 1;
+  const cells = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const x = (c + .5) / cols, y = (r + .5) / rows;
+    cells.push({ c, r, k: key((x - .5) * W, (y - .5) * H, W, H) });
+  }
+  let lo = Infinity, hi = -Infinity;
+  for (const e of cells) { lo = Math.min(lo, e.k); hi = Math.max(hi, e.k); }
+  const span = hi - lo || 1;
+  for (const e of cells) e.t = (e.k - lo) / span * (1 - jitter) + Math.random() * jitter;
+  cells.sort((a, b) => a.t - b.t);
   try {
-    shuffle(Array.from({ length: n }, (_, i) => i)).forEach((i, rank) => {
-      ctx.cellDelay = rank / n * dur;
-      fn(i % cols, Math.floor(i / cols), rank);
-    });
+    cells.forEach((e, rank) => { ctx.cellDelay = e.t * dur; fn(e.c, e.r, rank, e.t); });
   } finally { ctx.cellDelay = undefined; }
 }
 export const safe = fn => { try { fn(); } catch (e) { console.warn('layer skipped:', e); } };

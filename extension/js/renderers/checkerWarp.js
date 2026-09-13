@@ -33,9 +33,8 @@ export default function checkerWarp() {
   // exactly at any scale.
   const svg = svgRoot();
   svg.setAttribute('shape-rendering', 'crispEdges');
-  // Cells appear in a random scatter (grid() visits them shuffled). Rather than animating every rect, cells are
-  // dropped into a couple of dozen buckets by visiting rank and each bucket is one animated group — spatially
-  // scattered, but only ~24 animations however large the grid.
+  // Cells reveal in whichever order grid() picks. Rather than animating every rect, cells are dropped into a couple
+  // of dozen buckets by reveal time and each bucket is one animated group — only ~24 animations however large the grid.
   const B = Math.min(24, cols * rows), dur = .9, groups = Array.from({ length: B }, (_, k) => {
     const g = document.createElementNS(NS, 'g');
     g.style.setProperty('--t0', 'none'); g.style.setProperty('--t1', 'none'); g.style.setProperty('--op', '1');
@@ -43,12 +42,12 @@ export default function checkerWarp() {
     svg.appendChild(g);
     return g;
   });
-  grid(cols, rows, (c, r, rank) => {
+  grid(cols, rows, (c, r, rank, t) => {
     // (cols−1)/(rows−1) so the far corner actually reaches b; over cols/rows the ramp stopped short at ~0.9
     const col = grad ? mix(a, b, (c / (cols - 1) + r / (rows - 1)) / 2) : ((r + c) % 2 ? a : b);
     const e = document.createElementNS(NS, 'rect');
     for (const [k, v] of [['x', xs[c]], ['y', ys[r]], ['width', xs[c + 1] - xs[c]], ['height', ys[r + 1] - ys[r]], ['fill', col]])
       e.setAttribute(k, typeof v === 'number' ? v.toFixed(2) : v);
-    groups[Math.floor(rank / (cols * rows) * B)].appendChild(e);
+    groups[Math.min(B - 1, Math.floor(t * B))].appendChild(e);   // bucket by reveal TIME, so every order keeps its shape
   });
 }

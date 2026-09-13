@@ -1,4 +1,4 @@
-import { ctx, ri, rand, shuffle, pick, chance, box, mix, group } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, chance, box, mix, group, grid } from '../utils.js';
 // Girih / Islamic star: an N-fold star-and-cross lattice. Varies by star symmetry (6/8/10/12-point),
 // square vs offset grid, filled vs strapwork (outlined) style, connector motif, colouring, and an
 // overall rotation — so it's a family of patterns, not one fixed tile.
@@ -36,13 +36,13 @@ export default function girih() {
     const L = rot ? Math.hypot(ctx.W, ctx.H) * 1.16 : 0;
     const x0 = rot ? cx - L / 2 : 0, y0 = rot ? cy - L / 2 : 0;
     const cols = Math.ceil((rot ? L : ctx.W) / c) + 1, rows = Math.ceil((rot ? L : ctx.H) / c) + 1;
-    for (let r = 0; r < rows; r++) for (let cc = 0; cc < cols; cc++) {
+    grid(cols, rows, (cc, r) => {
       const x = x0 + cc * c + (offset && r % 2 ? c / 2 : 0), y = y0 + r * c, col = colorFn(x, y, r + cc);
       box({ x, y, w: c * .96, h: c * .96, color: col, clip: star });
       if (strap) box({ x, y, w: c * .96 * rand(.55, .72), h: c * .96 * rand(.55, .72), color: ground, clip: star });   // hollow → outline strap
       if (conn === 'square') box({ x: x + c / 2, y: y + c / 2, w: c * .32, h: c * .32, rot: 45, color: mix(col, ctx.P.accent, .5) });
       else if (conn === 'star') box({ x: x + c / 2, y: y + c / 2, w: c * .44, h: c * .44, color: ctx.P.accent, clip: star });
-    }
+    });
   };
   if (rot) group({ transform: `translate(${cx}px,${cy}px) rotate(${rot}deg) translate(${-cx}px,${-cy}px)`, transformOrigin: '0px 0px' }, null, null, draw);
   else draw();

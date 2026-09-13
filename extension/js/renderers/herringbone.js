@@ -1,9 +1,11 @@
-import { ctx, rand, shuffle, box, mix, clamp, chance, grid } from '../utils.js';
+import { ctx, rand, box, mix, clamp, chance, groundScheme, oneSide, grid } from '../utils.js';
 // Herringbone: planks laid at alternating ±45°, offset row to row so the courses interlock.
+// The ground showing in the joints is any palette hue at any lightness, with the planks made to read against it;
+// a gradient mixes between colours, so those go to one side of its lightness — see oneSide().
 export default function herringbone() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
+  const { ground, fg } = groundScheme();
   const w = ctx.S * rand(.035, .055), L = w * rand(2.6, 3.4), cell = L / Math.SQRT2;
-  const grad = chance(.5);
+  const grad = chance(.5), cs = grad ? oneSide(fg, ground) : fg;
   // one extra course past every edge, as before: the planks lean out of their cells and odd rows are shifted
   const R = Math.ceil((ctx.H + 2 * cell) / cell), C = Math.ceil((ctx.W + 2 * cell) / cell);
   grid(C, R, (c, r) => {

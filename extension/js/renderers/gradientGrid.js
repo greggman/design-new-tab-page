@@ -1,11 +1,14 @@
-import { ctx, ri, clamp, rand, shuffle, box, mix, chance, grid } from '../utils.js';
+import { ctx, ri, clamp, rand, box, mix, groundScheme, oneSide, grid } from '../utils.js';
 // Gradient grid: a field of flat tiles bilinearly interpolated between four corner colors. A pure
 // color study — adjacent low-contrast steps blend into a smooth wash while staying crisply gridded.
+// The ground between the tiles is any palette hue at any lightness. The corners all sit on one side of its
+// lightness (oneSide), so no stretch of the wash can pass through the ground's colour and drop out.
 export default function gradientGrid() {
   const h = ri(4, 10) / 10;
   const w = ri(4, 10) / 10;
   const rot = rand(0, 9) * 10;
-  const cols = ri(6, 14), rows = clamp(Math.round(cols * ctx.H / ctx.W), 5, 12), cw = ctx.W / cols, ch = ctx.H / rows, cs = shuffle([...ctx.POOL, ctx.P.accent]);
+  const cols = ri(6, 14), rows = clamp(Math.round(cols * ctx.H / ctx.W), 5, 12), cw = ctx.W / cols, ch = ctx.H / rows;
+  const { ground, fg } = groundScheme(), cs = oneSide(fg, ground);
   const c00 = cs[0], c10 = cs[1 % cs.length], c01 = cs[2 % cs.length] || cs[0], c11 = cs[3 % cs.length] || cs[1 % cs.length];
   grid(cols, rows, (c, r) => {
     const u = cols > 1 ? c / (cols - 1) : 0, v = rows > 1 ? r / (rows - 1) : 0;

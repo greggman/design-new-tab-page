@@ -150,6 +150,22 @@ export function readable(colors, base, minDist = .2) {
   return out;
 }
 
+// Colours for a GRADIENT over `base`: every one on the same side of the base in lightness, at least `minL`
+// away. readable() isn't enough for this — it lets a colour pass on hue alone, and keeps colours on both sides —
+// so mixing two of its colours can walk straight through the base's lightness, or blend two opposite hues to a
+// grey that matches it, and a stretch of the gradient vanishes into the ground. The side taken is the one that
+// needs the least lightness moved (among sides with room), and a colour already clear on that side is kept
+// exactly: pushing everything into a fixed band crushed whole palettes to near-black on a mid ground.
+// Nothing is dropped: the result is index-for-index with the input.
+export function oneSide(colors, base, minL = .2) {
+  const [bL] = hexToOklch(base), lch = colors.map(hexToOklch);
+  const sides = [[1, .97 - bL], [-1, bL - .06]].filter(([, room]) => room >= minL + .08);
+  const cost = s => lch.reduce((t, [L]) => t + Math.max(0, minL - s * (L - bL)), 0);
+  const [s, room] = sides.sort((p, q) => cost(p[0]) - cost(q[0]))[0] ?? (bL < .5 ? [1, .97 - bL] : [-1, bL - .06]);
+  return lch.map(([L, C, H], i) => s * (L - bL) >= minL ? colors[i]
+    : oklchToHex(clamp(bL + s * (minL + .02 + rand(0, Math.max(0, Math.min(.12, room - minL - .04)))), .04, .985), C, H));
+}
+
 // { ground, fg, ink, soft, gL }
 //   ground — one of the palette's hues at a lightness drawn uniformly across the range, chroma anywhere from a
 //            muted tint to the palette colour's own strength. Painted onto ctx.root unless paint:false.

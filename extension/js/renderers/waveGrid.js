@@ -1,4 +1,4 @@
-import { ctx, ri, rand, pick, choice, shuffle, chance, clamp, wpick, mix, shape, grid } from '../utils.js';
+import { ctx, ri, rand, pick, choice, shuffle, chance, clamp, wpick, mix, shape, grid, groundScheme, oneSide } from '../utils.js';
 // Wave grid: a grid of shapes whose rows ride a sine wave. The whole point is that you can SEE the wave, so
 // three things have to hold that a plain jittered grid doesn't: the amplitude is a real multiple of the row
 // pitch (not a fraction of it), every row carries very nearly the same phase so the rows stay parallel
@@ -9,7 +9,6 @@ import { ctx, ri, rand, pick, choice, shuffle, chance, clamp, wpick, mix, shape,
 // one. Pinned to the horizontal instead, a portrait window gets ~1 cycle of wave against 25 rows of vertical
 // repetition, and the repetition wins.
 export default function waveGrid() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
   const vert = ctx.H > ctx.W;
   const U = vert ? ctx.H : ctx.W, V = vert ? ctx.W : ctx.H;
   // Size the cell off the SHORT side and derive BOTH counts from it, so the grid keeps the same density and
@@ -33,6 +32,9 @@ export default function waveGrid() {
   // by wave value is subtler but still tracks it. Colouring ACROSS the wave is just banding — it fights the
   // wave rather than showing it, so it isn't an option here.
   const cpol = wpick([['line', 3], ['phase', 1]]);
+  // The ground is any palette hue at any lightness. Phase colouring blends between colours, so it keeps them all
+  // on one side of the ground's lightness (oneSide) — otherwise part of the ramp can fade into the ground.
+  const { ground, fg } = groundScheme(), cs = cpol === 'phase' ? oneSide(fg, ground) : fg;
   // Cap so even a swollen crest shape only just touches its neighbour — past that the crests fuse into solid
   // blocks and the individual shapes (and with them the grid) stop reading.
   const cell = Math.min(du, dv), base = Math.min(cell * rand(.62, .95), cell * 1.02 / (1 + swell));

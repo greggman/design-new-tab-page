@@ -1,8 +1,9 @@
-import { ctx, ri, rand, shuffle, pick, circle, chance, clamp, grid } from '../utils.js';
+import { ctx, ri, rand, shuffle, pick, circle, chance, clamp, grid, groundScheme } from '../utils.js';
 // Halftone: a regular dot grid whose dot size ramps along a gradient (linear or radial).
 // The size gradient creates implied tone and depth from a single flat color — a print-shop staple.
+// The paper is any palette hue at any lightness (groundScheme), with the dot colours made readable against it.
 export default function halftone() {
-  const cols = ri(14, 26), cw = ctx.W / cols, rows = Math.ceil(ctx.H / cw) + 1, cs = shuffle([...ctx.POOL, ctx.P.accent]);
+  const cols = ri(14, 26), cw = ctx.W / cols, rows = Math.ceil(ctx.H / cw) + 1, cs = groundScheme().fg;
   const mode = pick(['linear', 'radial']), invert = chance(.5), ang = rand(0, Math.PI * 2);
   const dir = [Math.cos(ang), Math.sin(ang)], [fx, fy] = [rand(.2, .8) * ctx.W, rand(.2, .8) * ctx.H];
   const maxD = Math.hypot(ctx.W, ctx.H), mono = chance(.6) ? cs[0] : null;

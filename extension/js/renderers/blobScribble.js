@@ -1,5 +1,5 @@
-import { ctx, ri, rand, times, shuffle, pick, chance, box, svgRoot, smoothPath, mix } from '../utils.js';
-// Blobs + scribbles: scattered organic blobs (smooth closed bézier shapes) on a light ground, some
+import { ctx, ri, rand, times, shuffle, pick, chance, box, svgRoot, smoothPath, mix, groundScheme } from '../utils.js';
+// Blobs + scribbles: scattered organic blobs (smooth closed bézier shapes) on a ground of any palette hue and lightness, some
 // with a concentric inner outline, plus single-line spiral scribbles and little dash clusters. SVG.
 function blob(cx, cy, r, wob, n) {
   const p = [];
@@ -10,14 +10,14 @@ function blob(cx, cy, r, wob, n) {
   return d + ' Z';
 }
 export default function blobScribble() {
-  const cs = shuffle([...ctx.POOL, ctx.P.accent]);
-  const bg = mix(ctx.P.bg, '#ffffff', ctx.P.dark ? .04 : .35), ink = mix(ctx.P.ink, bg, .1);
+  // paint:false — the ground goes on as an opaque box so it also covers any setBg() treatment underneath
+  const { ground: bg, fg: cs, ink } = groundScheme({ paint: false });
   box({ x: ctx.W / 2, y: ctx.H / 2, w: ctx.W, h: ctx.H, color: bg, z: -2 });
   const s = svgRoot();
   times(ri(6, 14), () => {
     const cx = rand(.1, .9) * ctx.W, cy = rand(.1, .9) * ctx.H, r = ctx.S * rand(.06, .16), col = pick(cs);
     s.node('path', { d: blob(cx, cy, r, rand(.12, .28), ri(6, 9)), fill: col });
-    if (chance(.4)) s.node('path', { d: blob(cx, cy, r * rand(.5, .7), rand(.1, .2), ri(6, 9)), fill: 'none', stroke: mix(col, ctx.P.ink, .3), 'stroke-width': Math.max(1, r * .04) });
+    if (chance(.4)) s.node('path', { d: blob(cx, cy, r * rand(.5, .7), rand(.1, .2), ri(6, 9)), fill: 'none', stroke: mix(col, ink, .3), 'stroke-width': Math.max(1, r * .04) });
   });
   times(ri(3, 7), () => {                                  // spiral scribbles
     const cx = rand(.1, .9) * ctx.W, cy = rand(.1, .9) * ctx.H, r = ctx.S * rand(.04, .1), turns = rand(1.5, 3);

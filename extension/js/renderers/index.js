@@ -3,6 +3,8 @@ import paisley from './paisley.js';
 import batik from './batik.js';
 import { adinkra, adire } from './westAfrican.js';
 import waxPrint from './waxPrint.js';
+import tapa from './tapa.js';
+import { midCenturyRibbons, midCenturyWaves, midCenturyGarden } from './midCentury.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
 import sunburst from './sunburst.js';
@@ -346,5 +348,9 @@ export const SYSTEMS = [
   ['Adinkra', adinkra, .45],
   ['Adire', adire, .45],
   ['Wax print', waxPrint, .5],
+  ['Mid-century ribbons', midCenturyRibbons, .5],
+  ['Mid-century waves', midCenturyWaves, .5],
+  ['Mid-century garden', midCenturyGarden, .5],
+  ['Tapa', tapa, .5],
 ];
 export default SYSTEMS;

@@ -44,7 +44,10 @@ const GRID_ORDER_WEIGHTS = Object.keys(GRID_ORDERS).map(k => [k, k === 'random' 
 // Timing follows the key, not the rank, so a radial reveal grows at a steady speed rather than slowing as the rings
 // get longer. A little jitter is mixed in so a column or ring doesn't land as one hard-edged block.
 //
-// Two limits: creation order is also PAINT order, so cells must not overlap; and state carried from one cell to the
+// Cells are CREATED in key order — the jitter shifts only their timing — so an order like forward/backward is also a
+// dependable paint order (later on top). Ties (a whole column in edgesInH, say) keep reading order.
+//
+// Two limits: creation order is also PAINT order, so cells must not overlap unless you rely on the key order; and state carried from one cell to the
 // next (neighbour-aware colouring, a cell claiming its neighbour) must be computed in reading order beforehand, with
 // only the drawing done here.
 export function grid(cols, rows, fn, { dur = .8, order = wpick(GRID_ORDER_WEIGHTS), jitter = .12 } = {}) {
@@ -58,7 +61,7 @@ export function grid(cols, rows, fn, { dur = .8, order = wpick(GRID_ORDER_WEIGHT
   for (const e of cells) { lo = Math.min(lo, e.k); hi = Math.max(hi, e.k); }
   const span = hi - lo || 1;
   for (const e of cells) e.t = (e.k - lo) / span * (1 - jitter) + Math.random() * jitter;
-  cells.sort((a, b) => a.t - b.t);
+  cells.sort((a, b) => a.k - b.k);   // create (= paint) in key order; jitter moves only the timing
   const outer = ctx.cellDelay, base = outer ?? 0;   // nested inside another grid()/rrange(): start at the outer cell's delay
   try {
     cells.forEach((e, rank) => { ctx.cellDelay = base + e.t * dur; fn(e.c, e.r, rank, e.t); });
@@ -86,7 +89,7 @@ export function rrange(start, end, fn, { dur = .8, order = wpick(RANGE_ORDER_WEI
   for (const e of items) { lo = Math.min(lo, e.k); hi = Math.max(hi, e.k); }
   const span = hi - lo || 1;
   for (const e of items) e.t = (e.k - lo) / span * (1 - jitter) + Math.random() * jitter;
-  items.sort((a, b) => a.t - b.t);
+  items.sort((a, b) => a.k - b.k);   // create (= paint) in key order; jitter moves only the timing
   const outer = ctx.cellDelay, base = outer ?? 0;   // nested inside another grid()/rrange(): start at the outer cell's delay
   try {
     items.forEach((e, rank) => { ctx.cellDelay = base + e.t * dur; fn(e.i, rank, e.t); });

@@ -205,7 +205,8 @@ export function oneSide(colors, base, minL = .2) {
 export function groundScheme({ minDist = .2, paint = true } = {}) {
   const src = [...new Set([ctx.P.accent, ...ctx.P.colors])];
   const [, C0, H] = hexToOklch(pick(src));
-  const gL = rand(.13, .95);
+  // uniform over the whole range, except for dark-mode users: mostly the darker half (see prefersDark)
+  const gL = !prefersDark() ? rand(.13, .95) : chance(DARK_LEAN) ? rand(.13, .6) : rand(.6, .95);
   const ground = oklchToHex(gL, C0 * rand(.3, 1.1), H);
   let fg = readable(shuffle(src), ground, minDist);
   if (fg.length < 2) fg = readable([...fg, oklchToHex(gL < .55 ? rand(.82, .94) : rand(.16, .3), C0 * rand(.3, .9), hexToOklch(pick(src))[2])], ground, minDist);
@@ -229,11 +230,16 @@ export const CURATED = [
   { name: 'ICE', bg: '#eef3f6', ink: '#1f2d3a', colors: ['#3a6ea5', '#6fb1c4', '#c0d6df', '#27384a'], accent: '#ef8354', dark: false },
 ];
 
+// Dark-mode users get dark grounds more often — never exclusively, since plenty of designs are at their best on
+// light paper — so a new tab mostly doesn't flash bright at them. Light-mode users stay unbiased.
+export const prefersDark = () => globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+const DARK_LEAN = .78;   // share of dark grounds for dark-mode users
+
 export function generatedPalette() {
   const baseH = ri(0, 359), scheme = pick(['analog', 'comp', 'triad', 'split', 'tetrad']);
   const hues = { analog: [baseH, baseH + 30, baseH - 30, baseH + 60], comp: [baseH, baseH + 180, baseH + 20, baseH + 200], triad: [baseH, baseH + 120, baseH + 240], split: [baseH, baseH + 150, baseH + 210], tetrad: [baseH, baseH + 90, baseH + 180, baseH + 270] }[scheme];
   const cfg = { vibrant: [[72, 90], [48, 60]], muted: [[30, 48], [46, 62]], pastel: [[45, 65], [64, 76]], earthy: [[38, 55], [42, 56]], deep: [[60, 80], [34, 46]] };
-  const mood = pick(Object.keys(cfg)), m = cfg[mood], dark = chance(0.45);
+  const mood = pick(Object.keys(cfg)), m = cfg[mood], dark = chance(prefersDark() ? DARK_LEAN : 0.45);
   return {
     name: scheme.toUpperCase() + '·' + mood.toUpperCase(),
     bg: dark ? hslToHex(baseH + ri(-20, 20), rand(18, 35), rand(8, 14)) : hslToHex(baseH + ri(-20, 20), rand(12, 28), rand(91, 96)),
@@ -242,7 +248,8 @@ export function generatedPalette() {
     accent: hslToHex(baseH + 180, rand(78, 92), dark ? 58 : 52), dark,
   };
 }
-export const makePalette = () => chance(0.5) ? { ...pick(CURATED) } : generatedPalette();
+const curated = () => { if (!prefersDark()) return pick(CURATED); const dark = chance(DARK_LEAN); return pick(CURATED.filter(p => p.dark === dark)); };
+export const makePalette = () => chance(0.5) ? { ...curated() } : generatedPalette();
 
 /* ---------- OKLCH (perceptually-uniform color) ----------
    OKLCH is what CSS Color 4 exposes as oklch(L C H). We generate palettes in this space because, unlike
@@ -355,7 +362,7 @@ export function paletteFromBase(hex) {
   }).sort((a, b) => hexToOklch(b)[0] - hexToOklch(a)[0]);   // order light → dark for a clean card
 
   // design ground + accent derived from the palette (kept clean for legibility, not shown in the grid)
-  const dark = chance(0.42);
+  const dark = chance(prefersDark() ? DARK_LEAN : 0.42);
   const accent = colors.reduce((m, c) => hexToOklch(c)[1] > hexToOklch(m)[1] ? c : m, colors[0]);
   return {
     name: 'BASE·' + schemeName,

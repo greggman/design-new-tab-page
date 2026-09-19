@@ -1,6 +1,7 @@
 import modularGrid from './modularGrid.js';
 import paisley from './paisley.js';
 import batik from './batik.js';
+import { adinkra, adire } from './westAfrican.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
 import sunburst from './sunburst.js';
@@ -341,5 +342,7 @@ export const SYSTEMS = [
   ['Arches', arches, .5],
   ['Paisley', paisley, .5],
   ['Batik', batik, .5],
+  ['Adinkra', adinkra, .45],
+  ['Adire', adire, .45],
 ];
 export default SYSTEMS;

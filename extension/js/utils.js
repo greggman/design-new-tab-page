@@ -59,9 +59,38 @@ export function grid(cols, rows, fn, { dur = .8, order = wpick(GRID_ORDER_WEIGHT
   const span = hi - lo || 1;
   for (const e of cells) e.t = (e.k - lo) / span * (1 - jitter) + Math.random() * jitter;
   cells.sort((a, b) => a.t - b.t);
+  const outer = ctx.cellDelay, base = outer ?? 0;   // nested inside another grid()/rrange(): start at the outer cell's delay
   try {
-    cells.forEach((e, rank) => { ctx.cellDelay = e.t * dur; fn(e.c, e.r, rank, e.t); });
-  } finally { ctx.cellDelay = undefined; }
+    cells.forEach((e, rank) => { ctx.cellDelay = base + e.t * dur; fn(e.c, e.r, rank, e.t); });
+  } finally { ctx.cellDelay = outer; }
+}
+// Reveal orders for rrange(). Each maps a value's position u (0…1 from start to end) to a key; values reveal in
+// increasing key.
+export const RANGE_ORDERS = {
+  random: () => Math.random(),
+  forward: u => u,
+  backward: u => -u,
+  edgesIn: u => .5 - Math.abs(u - .5),
+  centreOut: u => Math.abs(u - .5),
+};
+const RANGE_ORDER_WEIGHTS = Object.keys(RANGE_ORDERS).map(k => [k, k === 'random' ? 2 : 1]);
+
+// grid()'s 1-D sibling: a drop-in for `for (let i = start; i < end; i++)` that visits every i in reveal order, as
+// fn(i, rank, t) — random, start→end, end→start, edges→centre or centre→edges, picked per call unless `order` names
+// one. Sets ctx.cellDelay the same way grid() does, and has the same limits: creation order is paint order, so
+// overlapping shapes will stack differently, and nothing may depend on the previous iteration having run.
+export function rrange(start, end, fn, { dur = .8, order = wpick(RANGE_ORDER_WEIGHTS), jitter = .12 } = {}) {
+  const key = RANGE_ORDERS[order], n = end - start, items = [];
+  for (let i = start; i < end; i++) items.push({ i, k: key(n > 1 ? (i - start) / (n - 1) : .5) });
+  let lo = Infinity, hi = -Infinity;
+  for (const e of items) { lo = Math.min(lo, e.k); hi = Math.max(hi, e.k); }
+  const span = hi - lo || 1;
+  for (const e of items) e.t = (e.k - lo) / span * (1 - jitter) + Math.random() * jitter;
+  items.sort((a, b) => a.t - b.t);
+  const outer = ctx.cellDelay, base = outer ?? 0;   // nested inside another grid()/rrange(): start at the outer cell's delay
+  try {
+    items.forEach((e, rank) => { ctx.cellDelay = base + e.t * dur; fn(e.i, rank, e.t); });
+  } finally { ctx.cellDelay = outer; }
 }
 export const safe = fn => { try { fn(); } catch (e) { console.warn('layer skipped:', e); } };
 export const range = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
@@ -446,12 +475,29 @@ export const wedge = ({ x, y, r, color, start = 0, sweep = 90, z = 1 }) => el({ 
 export const halfDisc = ({ x, y, r, color, rot = 0, z = 1 }) => el({ left: x + 'px', top: y + 'px', width: r * 2 + 'px', height: r + 'px', background: color, borderRadius: `${r}px ${r}px 0 0`, zIndex: z }, `translate(-50%,-50%) rotate(${rot}deg) scale(.8)`, `translate(-50%,-50%) rotate(${rot}deg)`);
 export const line = ({ x, y, len, rot, thick, color, z = 2 }) => box({ x, y, w: len, h: thick, color, rot, z });
 export const stripe = ({ x, y, w, h, rot, color, lw, gap }) => el({ left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', background: `repeating-linear-gradient(90deg, ${color} 0 ${lw}px, transparent ${lw}px ${lw + gap}px)` }, `translate(-50%,-50%) rotate(${rot}deg) scale(.85)`, `translate(-50%,-50%) rotate(${rot}deg)`);
+// Concentric rings around (x, y): a solid centre disc plus stroked SVG bands, each band one circle (or square)
+// whose stroke spans exactly that band — so nothing is stacked or overdrawn. The bands reveal via rrange(), so
+// they come in inside-out, outside-in, from the middle band, or scattered.
 export function rings({ x, y, r, colors, rw = null, square = false }) {
   const inner = Math.max(6, Math.round(r * rand(0.08, 0.16)));
-  let cur = inner, sh = [], i = 0, g = 0;
-  while (cur < r && g++ < 80) { const w = Math.max(3, rw || Math.round(r * rand(0.04, 0.1))); sh.push(`0 0 0 ${cur + w}px ${colors[i % colors.length]}`); cur += w; i++; }
-  return el({ left: x + 'px', top: y + 'px', width: inner * 2 + 'px', height: inner * 2 + 'px', borderRadius: square ? '0' : '50%', background: colors[i % colors.length], boxShadow: sh.join(','), zIndex: 1 },
-    'translate(-50%,-50%) scale(.6)', `translate(-50%,-50%) rotate(${square ? choice([0, 45]) : 0}deg)`);
+  const bands = []; let cur = inner, i = 0, g = 0;
+  while (cur < r && g++ < 80) { const w = Math.max(3, rw || Math.round(r * rand(0.04, 0.1))); bands.push({ mid: cur + w / 2, w, color: colors[i % colors.length] }); cur += w; i++; }
+  const R = cur, rot = square ? choice([0, 45]) : 0, svg = svgRoot();
+  // shrink the full-canvas svg down to the rings' bounding square (√2 larger when a square is turned 45°)
+  const B = rot ? R * Math.SQRT2 : R;
+  svg.setAttribute('viewBox', `${x - B} ${y - B} ${B * 2} ${B * 2}`);
+  Object.assign(svg.style, { left: x - B + 'px', top: y - B + 'px', width: B * 2 + 'px', height: B * 2 + 'px', zIndex: 1 });
+  const g0 = rot ? svg.node('g', { transform: `rotate(${rot} ${x} ${y})` }) : svg;
+  // strokes are 1px wider than their band so neighbours overlap by ½px, hiding anti-aliasing seams
+  const draw = (rad, attrs) => square
+    ? svg.node('rect', { x: x - rad, y: y - rad, width: rad * 2, height: rad * 2, ...attrs }, g0)
+    : svg.node('circle', { cx: x, cy: y, r: rad, ...attrs }, g0);
+  rrange(0, bands.length + 1, k => {
+    if (k === 0) return draw(inner + .5, { fill: colors[i % colors.length] });
+    const b = bands[k - 1];
+    draw(b.mid, { fill: 'none', stroke: b.color, 'stroke-width': b.w + 1 });
+  }, { dur: .5 });
+  return svg;
 }
 export function nested({ x, y, r, clip, colors, layers = 4, rot = 0 }) { times(layers, i => { const s = r * 2 * (1 - i / (layers + 0.5)); box({ x, y, w: s, h: s, color: colors[i % colors.length], rot: rot + i * choice([0, 12, -12, 24]), clip, z: i }); }); }
 

@@ -90,7 +90,12 @@ function generateSingle(rendererName) {
   ctx.rot = (!NO_ROTATE.has(name) && Math.random() < .22) ? rand(-9, 9) : 0;
   refit();
   overlay();
-  ctx.label.textContent = `${name.toUpperCase()}  ·  ${ctx.P.name}  ·  ${ctx.POOL.length}C`;
+  // The renderer name is a button (styled to look like plain label text) that re-rolls with the same renderer.
+  const nameBtn = document.createElement('button');
+  nameBtn.textContent = name.toUpperCase();
+  nameBtn.title = `New ${name} piece`;
+  nameBtn.addEventListener('click', e => { e.stopPropagation(); generateSingle(name); });
+  ctx.label.replaceChildren(nameBtn, `  ·  ${ctx.P.name}  ·  ${ctx.POOL.length}C`);
 }
 
 // ?w / ?h / ?count mode: generate `count` fixed-size inline-block tiles that wrap and scroll.

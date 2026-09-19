@@ -22,7 +22,7 @@ export default function kilim() {
   const g = turned ? svg.node('g', { transform: `rotate(90 ${f1(W / 2)} ${f1(H / 2)})` }) : svg;
   // Where the centre sits: in the middle of a diamond (two triangles back to back), or on the vertex where four
   // diamonds meet (two triangles tip to tip) — a half-cell offset of the ring centres.
-  const off = globalThis.__mode === "tip" ? .5 : globalThis.__mode === "back" ? 0 : chance(.5) ? .5 : 0;
+  const off = chance(.5) ? .5 : 0;
   const b = S * rand(.028, .045), h = b * rand(.55, .8), half = b / 2;   // triangle base and height
   const ringW = pick([1, 1, 1, 2]), M = 2 * ringW * ri(3, 6);   // ring width, centre spacing (in diamonds)
 
@@ -35,6 +35,10 @@ export default function kilim() {
     return s;
   };
   const seqs = [seq(), seq()], contrast = rand(.1, .16);
+  // Each ring's two triangle halves: most of the time two contrasting colours — the ring's own and the NEXT
+  // ring's (as in the classic prints: orange/yellow, then yellow/teal, teal/white …), so each band interlocks with
+  // its neighbour — otherwise a light and dark tone of one colour.
+  const pairs = chance(.65);
 
   // grid aligned so a vertex sits at the canvas centre (a main centre)
   const kx0 = -Math.ceil(GW / 2 / half) - 2, ry0 = -Math.ceil(GH / 2 / h) - 1;
@@ -53,8 +57,8 @@ export default function kilim() {
       const ia = Math.round(A / M), ic = Math.round(C / M), dA = A - ia * M, dC = C - ic * M;
       const ring = Math.floor(Math.max(Math.abs(dA), Math.abs(dC)) / ringW), type = ((ia + ic) % 2 + 2) % 2;
       const s = seqs[type], base = s[ring % s.length];
-      // the top and bottom halves of each diamond take the light and dark tone
-      const col = tone(base, up ? contrast : -contrast);
+      // the top and bottom halves of each diamond: a contrasting pair, or a light and dark tone
+      const col = pairs ? (up ? base : s[(ring + 1) % s.length]) : tone(base, up ? contrast : -contrast);
       const tri = up ? `M${f1(x0)} ${f1(y1)}L${f1(x0 + b)} ${f1(y1)}L${f1(x0 + half)} ${f1(y0)}Z` : `M${f1(x0)} ${f1(y0)}L${f1(x0 + b)} ${f1(y0)}L${f1(x0 + half)} ${f1(y1)}Z`;
       if (!paths.has(ring)) paths.set(ring, new Map());
       const m = paths.get(ring); m.set(col, (m.get(col) ?? '') + tri);

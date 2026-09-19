@@ -1,4 +1,6 @@
 import modularGrid from './modularGrid.js';
+import paisley from './paisley.js';
+import batik from './batik.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
 import sunburst from './sunburst.js';
@@ -337,5 +339,7 @@ export const SYSTEMS = [
   ['Escher steps', escherSteps, .4],
   ['Ziggurat', ziggurat, .4],
   ['Arches', arches, .5],
+  ['Paisley', paisley, .5],
+  ['Batik', batik, .5],
 ];
 export default SYSTEMS;

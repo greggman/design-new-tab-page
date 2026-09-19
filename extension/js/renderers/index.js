@@ -4,6 +4,8 @@ import batik from './batik.js';
 import { adinkra, adire } from './westAfrican.js';
 import waxPrint from './waxPrint.js';
 import tapa from './tapa.js';
+import blockPrint from './blockPrint.js';
+import haida from './haida.js';
 import { midCenturyRibbons, midCenturyWaves, midCenturyGarden } from './midCentury.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
@@ -352,5 +354,7 @@ export const SYSTEMS = [
   ['Mid-century waves', midCenturyWaves, .5],
   ['Mid-century garden', midCenturyGarden, .5],
   ['Tapa', tapa, .5],
+  ['Block print', blockPrint, .5],
+  ['Haida', haida, .5],
 ];
 export default SYSTEMS;

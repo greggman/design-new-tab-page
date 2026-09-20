@@ -4,7 +4,7 @@ import { ctx, ri, rand, shuffle, mix, chance, svgRoot, smoothPath, rrange } from
 export default function contourLines() {
   const n = ri(10, 18), seg = ri(44, 72), cs = shuffle([ctx.P.accent, ...ctx.POOL]);
   const amp = ctx.H * rand(.02, .06), freq = rand(1, 3) * Math.PI * 2 / ctx.W;
-  const phase0 = rand(0, 6.28), dphase = rand(.15, .55), thick = Math.max(1.5, ctx.S * rand(.0022, .0055));
+  const phase0 = rand(0, 6.28), dphase = rand(.15, .55), thick = Math.max(1.5, ctx.S * rand(.0022, .055));
   const svg = svgRoot(), rtl = chance(.5);   // one SVG path per line; they draw on left→right or right→left
   svg.style.zIndex = 1;
   rrange(0, n, i => {

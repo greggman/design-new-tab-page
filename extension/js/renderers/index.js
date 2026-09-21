@@ -11,6 +11,7 @@ import sun from './sun.js';
 import snowflake from './snowflake.js';
 import isoBlocks from './isoBlocks.js';
 import shapeTiles from './shapeTiles.js';
+import longShadow from './longShadow.js';
 import { midCenturyRibbons, midCenturyWaves, midCenturyGarden } from './midCentury.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
@@ -366,5 +367,6 @@ export const SYSTEMS = [
   ['Snowflakes', snowflake, .45],
   ['Iso blocks', isoBlocks, .5],
   ['Shape tiles', shapeTiles, .5],
+  ['Long shadow', longShadow, .5],
 ];
 export default SYSTEMS;

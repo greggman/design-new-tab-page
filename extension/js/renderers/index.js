@@ -8,6 +8,7 @@ import blockPrint from './blockPrint.js';
 import haida from './haida.js';
 import kilim from './kilim.js';
 import sun from './sun.js';
+import snowflake from './snowflake.js';
 import { midCenturyRibbons, midCenturyWaves, midCenturyGarden } from './midCentury.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
@@ -360,5 +361,6 @@ export const SYSTEMS = [
   ['Haida', haida, .5],
   ['Kilim', kilim, .5],
   ['Suns', sun, .5],
+  ['Snowflakes', snowflake, .45],
 ];
 export default SYSTEMS;

@@ -10,6 +10,7 @@ import kilim from './kilim.js';
 import sun from './sun.js';
 import snowflake from './snowflake.js';
 import isoBlocks from './isoBlocks.js';
+import shapeTiles from './shapeTiles.js';
 import { midCenturyRibbons, midCenturyWaves, midCenturyGarden } from './midCentury.js';
 import concentricCircles from './concentricCircles.js';
 import concentricSquares from './concentricSquares.js';
@@ -364,5 +365,6 @@ export const SYSTEMS = [
   ['Suns', sun, .5],
   ['Snowflakes', snowflake, .45],
   ['Iso blocks', isoBlocks, .5],
+  ['Shape tiles', shapeTiles, .5],
 ];
 export default SYSTEMS;
